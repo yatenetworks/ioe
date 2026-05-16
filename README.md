@@ -194,6 +194,22 @@ See:
 docs/APP_TEMPLATE_POLICY.md
 ```
 
+## Application template draft
+
+IOE is preparing a simple, validation-friendly format for AI application environment templates.
+
+Current draft files:
+
+- [Module manifest draft](docs/MODULE_MANIFEST_DRAFT.md)
+- [Template validation](docs/TEMPLATE_VALIDATION.md)
+- [Example AI module manifest](examples/ai-module.example.yaml)
+- [Local module runtime preview](docs/LOCAL_MODULE_RUNTIME_PREVIEW.md)
+- [Example local module template](examples/local-module-template.example.yaml)
+
+These drafts are early and may change.
+
+The goal is to make AI application environment templates easier to review, validate, install, back up, and maintain.
+
 ## Current Status
 
 This project is in beta.
