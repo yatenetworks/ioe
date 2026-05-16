@@ -1,0 +1,52 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+frontend/.env.local
+
+# Logs (local / CI — never commit)
+.build-log.txt
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+.cursor/
+
+# Review / packaging temp (do not commit)
+REVIEW_FILE_LIST.txt
+PACKAGE_CONTENTS.txt
+
+# Private full-core backup (never publish)
+*.private.py
+docs/private-backup/
+
+# User data (universal storage sandbox — never commit; installer default is ~/ioe-data)
+ioe-data/
+ioe-opt-telemetry/
+ioe-panel-data/
+
+# GitHub trending cache (generated on server)
+backend/trending_cache.json
+backend/trending_cache.json.tmp
