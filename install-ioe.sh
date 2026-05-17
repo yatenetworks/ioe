@@ -11,6 +11,7 @@ set -Eeuo pipefail
 
 IOE_PREVIEW_URL="${IOE_PREVIEW_URL:-https://job788.net/ioe-public-runnable-preview-v0.8-repair-20260517.tar.gz}"
 IOE_PREVIEW_SHA256="${IOE_PREVIEW_SHA256:-3811988d4ecf721c58896d8b60aaff8dba68191604b73fe4d257187d92b53b21}"
+INSTALLER_URL="${IOE_INSTALLER_URL:-https://raw.githubusercontent.com/yatenetworks/ioe/main/install-ioe.sh}"
 
 INSTALL_DIR="/opt/ioe-preview"
 PREVIEW_DIR="${INSTALL_DIR}/public-runnable-preview"
@@ -106,11 +107,25 @@ require_root() {
   if [[ "${EUID}" -eq 0 ]]; then
     return 0
   fi
-  if command -v sudo >/dev/null 2>&1; then
-    echo "Re-running installer as root via sudo -H" >&2
-    exec sudo -H bash "$0" "$@"
+
+  local script_path
+  script_path="$(readlink -f "$0" 2>/dev/null || true)"
+
+  if [[ -n "${script_path}" && -f "${script_path}" ]]; then
+    if command -v sudo >/dev/null 2>&1; then
+      echo "Re-running installer as root via sudo -H" >&2
+      exec sudo -H bash "${script_path}" "$@"
+    fi
+    echo "ERROR: sudo is required to run this installer as root" >&2
+    exit 1
   fi
-  echo "ERROR: This installer must be run as root or via sudo" >&2
+
+  cat >&2 <<EOF
+Please download the installer first, then run it with sudo:
+  curl -fsSL ${INSTALLER_URL} -o install-ioe.sh
+  chmod +x install-ioe.sh
+  sudo ./install-ioe.sh
+EOF
   exit 1
 }
 
@@ -278,11 +293,6 @@ reject_shipped_artifacts_in_tree() {
   if find "${PREVIEW_DIR}" \( -name .venv -o -name __pycache__ -o -name '*.pyc' \) 2>/dev/null | grep -q .; then
     fatal "Preview tree must not contain .venv, __pycache__, or .pyc files"
   fi
-}
-
-ensure_data_dir() {
-  install -d -m 0755 "${DATA_DIR}"
-  log "Data directory: ${DATA_DIR}"
 }
 
 setup_python_env() {

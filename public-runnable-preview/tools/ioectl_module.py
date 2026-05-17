@@ -26,10 +26,6 @@ INSTALL_FILES = (
 TRACEBACK_MARKERS = ("Traceback (most recent call last):", "  File ", "    ")
 
 
-def repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
-
-
 def data_root() -> Path:
     env_dir = os.environ.get("IOE_DATA_DIR", "").strip()
     if env_dir:

@@ -213,10 +213,12 @@ Package and details:
 - [public-runnable-preview/README.md](public-runnable-preview/README.md)
 - [public-runnable-preview/docs/LOCAL_RUNNABLE_PREVIEW.md](public-runnable-preview/docs/LOCAL_RUNNABLE_PREVIEW.md)
 
-Remote install entrypoint (run on a test VPS as root):
+Remote install entrypoint (run on a test VPS):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yatenetworks/ioe/main/install-ioe.sh | bash
+curl -fsSL https://raw.githubusercontent.com/yatenetworks/ioe/main/install-ioe.sh -o install-ioe.sh
+chmod +x install-ioe.sh
+sudo ./install-ioe.sh
 ```
 
 After install:
