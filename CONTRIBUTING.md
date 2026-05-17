@@ -92,11 +92,16 @@ docs/APP_TEMPLATE_POLICY.md
 docs/MODULE_TEMPLATE_STANDARD.md
 docs/AUTOMATION_FRIENDLY_CLI_STANDARD.md
 docs/ADAPTER_INTERFACE_DRAFT.md
+docs/TEMPLATE_REVIEW_CHECKLIST.md
 ```
 
 Templates must not include hardcoded secrets or unsafe defaults.
 
+Before opening a template pull request, walk through [docs/TEMPLATE_REVIEW_CHECKLIST.md](docs/TEMPLATE_REVIEW_CHECKLIST.md).
+
 ## Pull request guidelines
+
+All changes should go through a pull request. Do not push directly to `main` for normal work. See [docs/MERGE_POLICY.md](docs/MERGE_POLICY.md).
 
 A good pull request should explain:
 
@@ -106,6 +111,45 @@ A good pull request should explain:
 - any compatibility notes
 - any security impact
 - whether persistent data behavior changed
+- risk level (low / medium / high)
+
+Use the [.github/pull_request_template.md](.github/pull_request_template.md) when opening a PR.
+
+### Signed-off-by and DCO
+
+By contributing, you agree to [CONTRIBUTOR_TERMS.md](CONTRIBUTOR_TERMS.md) and certify your commits under [DEVELOPER_CERTIFICATE_OF_ORIGIN.md](DEVELOPER_CERTIFICATE_OF_ORIGIN.md).
+
+Sign off each commit:
+
+```bash
+git commit -s -m "docs: improve module example"
+```
+
+### High-risk files
+
+The following paths need maintainer review before merge:
+
+```text
+install-ioe.sh
+install.sh
+scripts/
+.github/workflows/
+docs/MERGE_POLICY.md
+docs/SECURITY_REVIEW_CHECKLIST.md
+docs/RELEASE_CHECKLIST.md
+SECURITY.md
+templates/
+examples/
+module.yaml
+docker-compose.yml
+healthcheck.sh
+```
+
+Use [docs/CODE_REVIEW_CHECKLIST.md](docs/CODE_REVIEW_CHECKLIST.md) and [docs/SECURITY_REVIEW_CHECKLIST.md](docs/SECURITY_REVIEW_CHECKLIST.md) when reviewing these areas.
+
+### Third-party and restricted content
+
+Do not submit company confidential material, third-party restricted code, or unlicensed assets. Follow [THIRD_PARTY_POLICY.md](THIRD_PARTY_POLICY.md) and [docs/DEPENDENCY_POLICY.md](docs/DEPENDENCY_POLICY.md).
 
 Keep changes focused and easy to review.
 

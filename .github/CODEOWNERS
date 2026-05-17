@@ -1,0 +1,16 @@
+# Replace @your-github-username with the repository maintainer GitHub account.
+# Use a personal account here, not an organization name.
+# If a maintainer team exists with write access, you may use:
+# * @yatenetworks/maintainers
+
+* @your-github-username
+
+/install-ioe.sh @your-github-username
+/install.sh @your-github-username
+/.github/workflows/ @your-github-username
+/docs/MERGE_POLICY.md @your-github-username
+/docs/SECURITY_REVIEW_CHECKLIST.md @your-github-username
+/docs/RELEASE_CHECKLIST.md @your-github-username
+/SECURITY.md @your-github-username
+/examples/ @your-github-username
+/templates/ @your-github-username

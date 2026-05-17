@@ -1,0 +1,62 @@
+name: PR Compliance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Shell syntax check
+        run: |
+          bash -n install-ioe.sh
+          bash -n install.sh
+
+      - name: Check for disallowed public wording
+        run: |
+          set -euo pipefail
+          PATTERN='distributed runtime|scheduler|marketplace|identity|settlement|federation|native protocol|machine-to-machine|cellular|next-generation|global AI network|node economy|蜂窝|节点经济|身份|联邦|下一代|机器间|协议费|控制面板|面板'
+          if grep -RInE "$PATTERN" \
+            README.md docs examples install-ioe.sh install.sh \
+            CODE_OF_CONDUCT.md ACCEPTABLE_USE.md CONTRIBUTOR_TERMS.md \
+            DEVELOPER_CERTIFICATE_OF_ORIGIN.md THIRD_PARTY_POLICY.md \
+            .github \
+            --exclude='pr-compliance.yml' \
+            --exclude='RELEASE_CHECKLIST.md' \
+            2>/dev/null; then
+            echo "::error::Found disallowed wording in public paths."
+            exit 1
+          fi
+          echo "No disallowed wording found."
+
+      - name: Check for secret-like patterns
+        run: |
+          set -euo pipefail
+          PATTERN='(AKIA[0-9A-Z]{16})|(BEGIN (RSA |OPENSSH )?PRIVATE KEY)|(ghp_[A-Za-z0-9]{20,})|(github_pat_[A-Za-z0-9_]{20,})|(xox[baprs]-[A-Za-z0-9-]{10,})'
+          if grep -RInE "$PATTERN" --exclude-dir=.git . 2>/dev/null; then
+            echo "::error::Possible secret pattern detected."
+            exit 1
+          fi
+          echo "No secret-like patterns found."
+
+      - name: Warn on risky shell patterns
+        continue-on-error: true
+        run: |
+          set +e
+          PATTERN='rm -rf /|curl[^|]*\|[^|]*bash|chmod 777|docker\.sock|privileged:\s*true|network_mode:\s*host'
+          MATCHES=$(grep -RInE "$PATTERN" install-ioe.sh install.sh scripts examples .github/workflows 2>/dev/null || true)
+          if [ -n "$MATCHES" ]; then
+            echo "::warning::Review risky shell or compose patterns:"
+            echo "$MATCHES"
+          else
+            echo "No risky shell patterns flagged."
+          fi
