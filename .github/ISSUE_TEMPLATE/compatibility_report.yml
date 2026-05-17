@@ -1,0 +1,121 @@
+name: Compatibility report
+description: Report whether a template works on a specific OS and VPS setup (local runnable preview / testing).
+title: "[Compatibility]: "
+labels:
+  - compatibility-report
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share results from testing an IOE template on a specific environment.
+
+        This helps maintainers understand whether a template is **tested** or **verified**. It is not a production readiness claim.
+
+        See `docs/COMPATIBILITY_REPORT_GUIDE.md` in the repository.
+
+  - type: input
+    id: template_name
+    attributes:
+      label: Template name
+      placeholder: e.g. hello.basic or community template id
+    validations:
+      required: true
+
+  - type: input
+    id: ioe_version
+    attributes:
+      label: IOE version or commit
+      placeholder: e.g. main @ abc1234 or v0.8 preview branch
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: OS and version
+      placeholder: e.g. Ubuntu 24.04 LTS
+    validations:
+      required: true
+
+  - type: input
+    id: vps_provider
+    attributes:
+      label: VPS or provider type (optional)
+      placeholder: e.g. Hetzner CX22, local VM
+    validations:
+      required: false
+
+  - type: input
+    id: cpu_ram
+    attributes:
+      label: CPU / RAM
+      placeholder: e.g. 2 vCPU, 2 GB RAM + 2 GB swap
+    validations:
+      required: true
+
+  - type: input
+    id: docker_version
+    attributes:
+      label: Docker version
+      placeholder: docker --version output
+    validations:
+      required: true
+
+  - type: input
+    id: compose_version
+    attributes:
+      label: Docker Compose version
+      placeholder: docker compose version output
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: commands_tested
+    attributes:
+      label: Commands tested
+      options:
+        - label: ioectl validate
+        - label: ioectl module install
+        - label: ioectl module start
+        - label: ioectl module status
+        - label: ioectl module logs
+        - label: ioectl module stop
+        - label: ioectl module remove
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Overall result
+      options:
+        - passed
+        - failed
+        - partial
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs_errors
+    attributes:
+      label: Logs or error output
+      description: Paste relevant command output. Redact secrets.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: data_preserved
+    attributes:
+      label: Was user data preserved after remove?
+      options:
+        - "yes"
+        - "no"
+        - not tested
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Known limitations, flaky steps, or follow-ups.
+    validations:
+      required: false
