@@ -349,7 +349,50 @@ run_remote_install() {
   log "Remote preview install completed successfully"
 }
 
+print_usage() {
+  cat <<'EOF'
+IOE local runnable preview repair installer
+
+Usage:
+  ./install-ioe.sh [--help]
+
+Default:
+  Run local repair/self-check mode for an already extracted preview package.
+
+Remote reinstall mode:
+  Set both IOE_PREVIEW_URL and IOE_PREVIEW_SHA256 to download and reinstall the preview package.
+
+Examples:
+  ./install-ioe.sh
+  IOE_PREVIEW_URL="https://example.com/ioe-preview.tar.gz" IOE_PREVIEW_SHA256="..." ./install-ioe.sh
+EOF
+}
+
 main() {
+  case "${1:-}" in
+    -h|--help|help)
+      if [[ $# -gt 1 ]]; then
+        echo "ERROR: unexpected extra argument: $2" >&2
+        print_usage >&2
+        exit 1
+      fi
+      print_usage
+      exit 0
+      ;;
+    "")
+      if [[ $# -gt 0 ]]; then
+        echo "ERROR: unknown argument: $1" >&2
+        print_usage >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "ERROR: unknown argument: $1" >&2
+      print_usage >&2
+      exit 1
+      ;;
+  esac
+
   require_root "$@"
   install -d -m 0755 "$(dirname "${LOG_FILE}")"
   : > "${LOG_FILE}"
