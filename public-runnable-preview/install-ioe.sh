@@ -4,7 +4,6 @@
 set -Eeuo pipefail
 
 INSTALL_DIR="/opt/ioe-preview"
-PREVIEW_DIR_DEFAULT="/opt/ioe-preview/public-runnable-preview"
 DATA_DIR="/opt/ioe-data"
 ARCHIVE="${INSTALL_DIR}/ioe-public-runnable-preview.tar.gz"
 LOG_FILE="/var/log/ioe-preview-install.log"

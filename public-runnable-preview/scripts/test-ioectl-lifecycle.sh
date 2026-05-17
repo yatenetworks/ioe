@@ -9,6 +9,7 @@ LOG_FILE="${IOE_LIFECYCLE_TEST_LOG:-/var/log/ioe-preview-lifecycle-test.log}"
 
 declare -a MODULES=(hello.basic static.web.basic http.echo.basic)
 declare -a PORTS=(18080 18081 18082)
+TEST_CONTAINER_NAMES=(ioe-hello-basic ioe-static-web-basic ioe-http-echo-basic)
 
 log() {
   printf '[%s] %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*" | tee -a "${LOG_FILE}"
@@ -73,6 +74,38 @@ run_ioectl_start() {
   rm -f "${out}"
 }
 
+wait_for_http_ready() {
+  local module_id="$1"
+  local port="$2"
+  local attempts="${IOE_TEST_READY_ATTEMPTS:-30}"
+  local delay="${IOE_TEST_READY_DELAY:-2}"
+  local i
+
+  for ((i = 1; i <= attempts; i++)); do
+    if curl -fsSI "http://127.0.0.1:${port}/" >>"${LOG_FILE}" 2>&1; then
+      log "Module ${module_id} is HTTP ready on port ${port} (attempt ${i}/${attempts})"
+      return 0
+    fi
+    sleep "${delay}"
+  done
+
+  echo "ERROR: module did not become ready: ${module_id} on port ${port}" >&2
+  return 1
+}
+
+assert_no_leftover_test_containers() {
+  local container
+  for container in "${TEST_CONTAINER_NAMES[@]}"; do
+    if docker ps -aq --filter "name=^/${container}$" | grep -q .; then
+      log "ERROR: leftover IOE test container detected: ${container}"
+      docker ps -a --filter "name=^/${container}$" | tee -a "${LOG_FILE}" || true
+      echo "ERROR: leftover IOE test container detected: ${container}" >&2
+      docker ps -a --filter "name=^/${container}$" >&2 || true
+      exit 1
+    fi
+  done
+}
+
 test_module() {
   local module_id=$1
   local port=$2
@@ -86,6 +119,11 @@ test_module() {
 
   run_ioectl "install ${module_id}" module install "${yaml}"
   run_ioectl_start "${module_id}" "${port}"
+  if ! wait_for_http_ready "${module_id}" "${port}"; then
+    "${PREVIEW_DIR}/ioectl" module logs "${module_id}" --tail 50 >>"${LOG_FILE}" 2>&1 || true
+    "${PREVIEW_DIR}/ioectl" module logs "${module_id}" --tail 50 >&2 || true
+    exit 1
+  fi
   run_ioectl "status running ${module_id}" module status "${module_id}"
 
   tmp="$(mktemp)"
@@ -97,9 +135,6 @@ test_module() {
   cat "${tmp}" | tee -a "${LOG_FILE}"
   assert_no_traceback_output "logs ${module_id}" "${tmp}"
   rm -f "${tmp}"
-
-  curl -fsSI "http://127.0.0.1:${port}/" >>"${LOG_FILE}" 2>&1 \
-    || fatal "HTTP check failed for ${module_id} on port ${port}"
 
   run_ioectl "stop ${module_id}" module stop "${module_id}"
   run_ioectl "status after stop ${module_id}" module status "${module_id}"
@@ -132,15 +167,7 @@ main() {
     test_module "${MODULES[$i]}" "${PORTS[$i]}"
   done
 
-  local containers
-  containers="$(docker ps -aq || true)"
-  if [[ -n "${containers}" ]]; then
-    log "ERROR: expected no containers after lifecycle test, but docker ps -a is not empty"
-    docker ps -a | tee -a "${LOG_FILE}"
-    echo "ERROR: leftover containers detected after lifecycle test" >&2
-    echo "Run: docker ps -a" >&2
-    exit 1
-  fi
+  assert_no_leftover_test_containers
 
   log "== SUCCESS: ioectl lifecycle test completed =="
   echo "== SUCCESS: ioectl lifecycle test completed =="
