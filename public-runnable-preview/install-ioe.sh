@@ -53,13 +53,16 @@ remote_install_requested() {
   [[ -n "${IOE_PREVIEW_URL:-}" && -n "${IOE_PREVIEW_SHA256:-}" ]]
 }
 
-validate_remote_install_config() {
+validate_remote_env_pair() {
   if [[ -n "${IOE_PREVIEW_URL:-}" && -z "${IOE_PREVIEW_SHA256:-}" ]]; then
-    fatal "IOE_PREVIEW_SHA256 is required when IOE_PREVIEW_URL is set (download/reinstall mode)"
+    fatal "IOE_PREVIEW_SHA256 is required when IOE_PREVIEW_URL is set"
   fi
   if [[ -z "${IOE_PREVIEW_URL:-}" && -n "${IOE_PREVIEW_SHA256:-}" ]]; then
-    fatal "IOE_PREVIEW_URL is required when IOE_PREVIEW_SHA256 is set (download/reinstall mode)"
+    fatal "IOE_PREVIEW_URL is required when IOE_PREVIEW_SHA256 is set"
   fi
+}
+
+validate_remote_install_config() {
   if [[ ! "${IOE_PREVIEW_URL}" =~ ^https?:// ]]; then
     fatal "IOE_PREVIEW_URL must start with http:// or https://"
   fi
@@ -368,7 +371,7 @@ Examples:
 EOF
 }
 
-main() {
+parse_args() {
   case "${1:-}" in
     -h|--help|help)
       if [[ $# -gt 1 ]]; then
@@ -380,11 +383,6 @@ main() {
       exit 0
       ;;
     "")
-      if [[ $# -gt 0 ]]; then
-        echo "ERROR: unknown argument: $1" >&2
-        print_usage >&2
-        exit 1
-      fi
       ;;
     *)
       echo "ERROR: unknown argument: $1" >&2
@@ -392,7 +390,11 @@ main() {
       exit 1
       ;;
   esac
+}
 
+main() {
+  parse_args "$@"
+  validate_remote_env_pair
   require_root "$@"
   install -d -m 0755 "$(dirname "${LOG_FILE}")"
   : > "${LOG_FILE}"
