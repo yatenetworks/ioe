@@ -2,6 +2,8 @@
 
 > A lightweight open-source tool for validating, installing, running, inspecting, and safely removing AI application environment templates on clean Linux servers.
 
+Project website: https://ioe.cc
+
 IOE AI Env Installer, short for **IOE AI Application Environment Installer**, focuses on one practical problem:
 
 > AI applications are becoming easier to build, but still too inconsistent to install and operate on clean servers.
