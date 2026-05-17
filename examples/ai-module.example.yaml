@@ -1,37 +1,65 @@
-module_id: translation.basic
+module_id: text.demo.basic
 template_version: 1
-name: Basic Translation Module
-description: Example low-risk AI application module manifest.
+name: Text Demo Basic Module
+description: Example AI application environment module manifest for public documentation.
 source:
-  type: image
-  url: example/translation-module:latest
+  type: local
+  path: templates/modules/text.demo.basic
 license: MIT
+runtime:
+  adapter: docker-compose
+  compose_file: docker-compose.yml
 capabilities:
-  - capability.translation.text
+  - capability.demo.text
 resource_profile:
   cpu_min: 1
   ram_mb_min: 512
   disk_mb_min: 512
-  gpu_required: false
-lifecycle_mode: standby
-healthcheck:
-  type: http
-  path: /health
-  port: 8080
+  accelerator_required: false
+ports:
+  - name: http
+    host_port: 18080
+    container_port: 8080
+    public: false
+storage:
+  data_root: ${IOE_DATA_DIR:-~/ioe-data}
+  app_data: apps/text.demo.basic/
+  backups: backups/text.demo.basic/
+models:
+  - name: demo-small-model
+    source: registry:example/demo-small-model
+    target_path: llm/demo-small-model
+    required: false
+    size_gb_estimate: 2
+    required_vram_gb: 0
+lifecycle:
+  healthcheck: healthcheck.sh
+healthchecks:
+  mode: all
+  checks:
+    - name: http
+      type: http
+      url: http://127.0.0.1:18080/health
+      timeout_seconds: 10
+    - name: container
+      type: container
+      target: text-demo
+logging:
+  default_tail: 100
+  sources:
+    - type: docker-compose
+      service: app
 security_policy:
-  risk_class: digital_only
   needs_root: false
   needs_docker_socket: false
+  privileged: false
   public_exposure: false
 recovery_policy:
   restart: true
   recreate: true
   restore_from_backup: false
-  reinstall: true
-  max_attempts: 3
-  backoff_seconds: 10
 cleanup_policy:
-  destroy_after_complete: false
-  standby_after_complete: true
+  preserve_data_by_default: true
   cleanup_temp_files: true
+  destructive_cleanup_requires_confirmation: true
 extensions: {}

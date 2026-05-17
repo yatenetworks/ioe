@@ -1,244 +1,288 @@
 # IOE AI Env Installer
 
-> Install AI application environments on IOE.
+> A lightweight open-source tool for validating, installing, running, inspecting, and safely removing AI application environment templates on clean Linux servers.
 
-IOE AI Env Installer, short for **IOE AI Application Environment Installer**, is a lightweight open-source tool for setting up AI application environments on clean Linux servers.
+IOE AI Env Installer, short for **IOE AI Application Environment Installer**, focuses on one practical problem:
 
-It helps prepare a Docker-based server environment with predictable storage, basic security defaults, and simple runtime diagnostics.
+> AI applications are becoming easier to build, but still too inconsistent to install and operate on clean servers.
 
-## What This Tool Does
+Many self-hosted AI projects use their own setup steps, environment variables, ports, data paths, health checks, model files, logs, and update notes. That creates repeated work for both users and maintainers.
 
-IOE AI Env Installer helps with:
+IOE aims to add a small, predictable lifecycle layer around existing tools such as Linux, Docker, Docker Compose, YAML, and schema validation.
 
-- Basic Linux server checks
-- Docker and Docker Compose setup
-- Standardized application data directories
-- Basic firewall configuration
-- Health checks
-- Backup and restore structure
-- Simple command-line management through `ioectl`
+IOE does **not** try to replace containers, package managers, application frameworks, cloud platforms, or existing open standards.
 
-## Project Scope
+## Why this project exists
 
-This project is a deployment tool.
+Self-hosted AI application setup is often harder than it should be:
 
-It focuses on:
+- every project has a different README
+- every project has different `.env` rules
+- ports and data directories are often unclear
+- model assets are often downloaded in one-off scripts
+- health checks may be missing or inconsistent
+- logs may be scattered across containers, scripts, or files
+- install scripts are hard to re-run safely
+- uninstall behavior may be unclear
+- long-running setup steps can look stuck
+- users are unsure where data, backups, and models are stored
+- maintainers repeatedly answer the same installation questions
 
-- Clean Linux server setup
-- Docker-based AI application environments
-- Predictable storage paths
-- Basic security defaults
-- Repeatable installation
-- Backup-friendly application layout
+IOE exists to reduce that repeated work.
 
-This project does not provide hosting services, managed cloud services, public infrastructure services, or production guarantees.
+The goal is to make AI application environments easier to:
 
-## Important Usage Notice
+- validate
+- install
+- start
+- inspect
+- read logs from
+- stop
+- remove safely
+- test on a clean Linux server
 
-This tool is intended for **fresh and clean Linux systems only**.
+## Core idea
 
-Do not run it on servers that already host production services, custom Docker stacks, databases, panels, or complex existing configurations.
+IOE standardizes a simple lifecycle for AI application environment templates:
 
-Using this tool on an old or busy server may cause conflicts, failed deployments, port issues, or service interruption.
+```bash
+ioectl validate module <module.yaml>
+ioectl module install <module.yaml>
+ioectl module start <module_id>
+ioectl module status <module_id>
+ioectl module logs <module_id>
+ioectl module stop <module_id>
+ioectl module remove <module_id>
+```
 
-You are responsible for reviewing the script before running it.
+The command names are intentionally simple. The value is not the CLI alone. The value is the common template structure, state model, data layout, and lifecycle behavior behind the CLI.
 
-## Requirements
+## Automation-friendly CLI behavior
 
-Recommended environment:
+IOE should be easy for both people and automation tools to drive.
 
-- Fresh Linux server
-- Root or sudo access
-- Docker-compatible system
-- At least 2 GB RAM
-- At least 10 GB free disk space
-- Stable network access
+Planned CLI behavior:
 
-Supported Linux distributions may vary during beta testing.
+```bash
+ioectl module status <module_id> --json
+ioectl validate module <module.yaml> --json
+ioectl module logs <module_id> --tail 100
+ioectl module logs <module_id> --follow
+```
 
-## Standard Data Layout
+JSON output should be strict, predictable, and easy to parse. Human-readable output is useful, but tools should not need to scrape terminal text to understand module state.
 
-IOE AI Env Installer uses a predictable data layout:
+Non-interactive runs should never block waiting for input. If IOE detects that it is running from a script or other non-TTY environment, it should use safe defaults and fail clearly when confirmation is required.
+
+## What IOE standardizes
+
+IOE is intended to provide a lightweight structure for:
+
+- module metadata
+- predictable local data paths
+- declared ports
+- required environment variables
+- basic resource requirements
+- optional model asset declarations
+- lifecycle hooks
+- health checks
+- logs
+- status states
+- safe lifecycle commands
+- template validation
+- local smoke testing
+- contribution review rules
+
+This helps contributors publish templates that are easier to review and helps users test templates more consistently.
+
+## What IOE does not replace
+
+IOE does not replace:
+
+- Docker
+- Docker Compose
+- OCI container images
+- Linux package managers
+- existing application frameworks
+- existing API specifications
+- cloud providers
+- backup systems
+
+IOE reuses existing tools and adds a small installation lifecycle layer for AI application environments.
+
+## Stable lifecycle, flexible adapters
+
+IOE keeps the public core small so it does not need to be redesigned every time the AI ecosystem changes.
+
+The stable public lifecycle is:
+
+```bash
+ioectl validate module <module.yaml>
+ioectl module install <module.yaml>
+ioectl module start <module_id>
+ioectl module status <module_id>
+ioectl module logs <module_id>
+ioectl module stop <module_id>
+ioectl module remove <module_id>
+```
+
+The tools behind this lifecycle may evolve through adapters. For example, IOE can support Docker Compose first and add other runtime adapters later without changing the basic lifecycle.
+
+Read more:
+
+- [Why IOE?](docs/WHY_IOE.md)
+- [Module Template Standard](docs/MODULE_TEMPLATE_STANDARD.md)
+- [Stability and Extension Policy](docs/STABILITY_AND_EXTENSION_POLICY.md)
+- [Automation-Friendly CLI Standard](docs/AUTOMATION_FRIENDLY_CLI_STANDARD.md)
+- [Adapter Interface Draft](docs/ADAPTER_INTERFACE_DRAFT.md)
+
+## Standard state model
+
+Long-running setup steps should not look like a frozen process. IOE modules should expose a small state model through `status`:
+
+```text
+new -> validating -> installing -> pulling_assets -> initializing -> starting -> healthchecking -> healthy
+```
+
+Failure and stop states should also be explicit:
+
+```text
+degraded
+failed
+stopping
+stopped
+removing
+removed
+```
+
+This makes it easier for users and automation tools to see whether a module is downloading assets, initializing data, waiting for health checks, or actually failing.
+
+## Standard data layout
+
+IOE templates should use predictable local paths. The default data root is:
+
+```text
+~/ioe-data/
+```
+
+The default layout is:
 
 ```text
 ~/ioe-data/
 ├── apps/
-│   └── <app_name>/
+│   └── <module_id>/
 ├── backups/
-│   └── <app_name>/
+│   └── <module_id>/
 └── models/
 ```
 
 Application data should be placed under:
 
 ```text
-~/ioe-data/apps/<app_name>/
+~/ioe-data/apps/<module_id>/
 ```
 
 Backups should be placed under:
 
 ```text
-~/ioe-data/backups/<app_name>/
+~/ioe-data/backups/<module_id>/
 ```
 
-Models should be placed under:
+Model files should be placed under:
 
 ```text
 ~/ioe-data/models/
 ```
 
-This structure keeps application files, backups, and runtime data easier to understand and migrate.
+The data root should be configurable later, but the default must remain clear and predictable.
 
-## Installation
+## Installer scripts
 
-The installer script name is:
+`install-ioe.sh` is the canonical future installer name.
 
-```text
-install-ioe.sh
-```
+`install.sh` is only a small compatibility wrapper that delegates to `install-ioe.sh`. It exists so users who expect a conventional `install.sh` entrypoint are not confused, while the project still keeps one real installer implementation.
 
-The command-line tool is:
+The public installer is not active yet. Until the preview installer has passed clean VPS testing, these scripts do not install packages, start containers, change firewall rules, or modify the host system.
 
-```text
-ioectl
-```
+## Current status
 
-Installation command:
+This repository is currently focused on public documentation, template standards, and a conservative preview direction.
+
+The public installer is **not active yet**.
+
+The files `install-ioe.sh` and `install.sh` are kept as stable public entry names, but they currently exit safely and do not install or modify the server. They will be replaced by a tested preview installer after clean-server testing is complete.
+
+Do not use `curl | bash` commands from this repository until the README says that the preview installer is active.
+
+## Installer status
+
+Current behavior:
 
 ```bash
 bash install-ioe.sh
 ```
 
-Remote installation command:
+The script prints a preview notice and exits without changing the system.
+
+Planned behavior after testing:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yatenetworks/ioe/main/install-ioe.sh | bash
+bash install-ioe.sh
 ```
 
-Review the script before running it on your server.
+The preview installer may later:
 
-## Basic Commands
+- check the operating system
+- install required dependencies
+- install Docker and Docker Compose if needed
+- prepare the IOE data layout
+- install a local `ioectl` preview
+- validate example module templates
+- optionally run a local smoke test
+- print next-step CLI commands
 
-Run diagnostics:
+The first public installer should remain local-only, conservative, and easy to inspect.
 
-```bash
-ioectl doctor
-```
+## Public documentation
 
-Check status:
+Start here:
 
-```bash
-ioectl status
-```
-
-View logs:
-
-```bash
-ioectl logs
-```
-
-Check security hints:
-
-```bash
-ioectl security
-```
-
-Show local runtime status:
-
-```bash
-ioectl runtime
-```
-
-## Security Notes
-
-This tool does not modify your SSH configuration by default.
-
-Port `22` remains reachable to avoid accidental lockout.
-
-Before using the server for anything important, review:
-
-```bash
-ioectl security
-```
-
-You should also review your cloud provider firewall or security group settings.
-
-## Clean System Requirement
-
-This tool should only be used on a fresh Linux server.
-
-Do not use it on:
-
-- Existing production servers
-- Servers already running important Docker containers
-- Servers with custom firewall rules you do not understand
-- Servers with existing panels or complex service stacks
-- Servers without backup or recovery access
-
-## Application Template Policy
-
-Only legal and properly licensed open-source applications should be added.
-
-Application templates should:
-
-- Use Docker or Docker Compose
-- Have a clear open-source license
-- Avoid hardcoded secrets
-- Store data under `~/ioe-data/apps/<app_name>/`
-- Document required ports and resources
-- Avoid exposing databases or internal services directly to the public Internet
-
-See:
-
-```text
-docs/APP_TEMPLATE_POLICY.md
-```
-
-## Application template draft
-
-IOE is preparing a simple, validation-friendly format for AI application environment templates.
-
-Current draft files:
-
+- [Why IOE](docs/WHY_IOE.md)
+- [Module template standard](docs/MODULE_TEMPLATE_STANDARD.md)
 - [Module manifest draft](docs/MODULE_MANIFEST_DRAFT.md)
 - [Template validation](docs/TEMPLATE_VALIDATION.md)
+- [Automation-friendly CLI standard](docs/AUTOMATION_FRIENDLY_CLI_STANDARD.md)
+- [Adapter interface draft](docs/ADAPTER_INTERFACE_DRAFT.md)
+- [Application template policy](docs/APP_TEMPLATE_POLICY.md)
+- [Local module lifecycle preview](docs/LOCAL_MODULE_RUNTIME_PREVIEW.md)
+
+Example files:
+
 - [Example AI module manifest](examples/ai-module.example.yaml)
-- [Local module runtime preview](docs/LOCAL_MODULE_RUNTIME_PREVIEW.md)
 - [Example local module template](examples/local-module-template.example.yaml)
 
-These drafts are early and may change.
+## Template contribution direction
 
-The goal is to make AI application environment templates easier to review, validate, install, back up, and maintain.
+A future IOE-compatible template should be simple to review:
 
-## Current Status
+```text
+templates/modules/<module_id>/
+├── module.yaml
+├── docker-compose.yml
+├── .env.example
+├── README.md
+└── healthcheck.sh
+```
 
-This project is in beta.
+Contributors should avoid hardcoded secrets, unclear data paths, privileged containers, public database ports, and unsafe defaults.
 
-Use it for testing, development, and clean server setup experiments.
+## Design goals
 
-Do not assume production readiness without your own review, testing, and backup plan.
+IOE should be:
 
-## Community
-
-IOE AI Env Installer is still in an early public beta stage.
-
-We will continue to improve the installer, documentation, compatibility checks, and application templates in public.
-
-Early feedback is especially valuable. Testing on different Linux servers, reporting issues, improving documentation, and contributing Docker Compose templates can directly help make the tool more reliable for others.
-
-This project is intended to grow through practical open-source collaboration.
-
-## Disclaimer
-
-This project is provided as an open-source tool without warranty.
-
-You are responsible for:
-
-- Reviewing the code
-- Understanding what the installer changes
-- Backing up your data
-- Securing your server
-- Testing compatibility with your system
-- Using the tool legally and responsibly
-
-The maintainers are not responsible for data loss, service interruption, security issues, configuration mistakes, or any damage caused by improper use.
+- small enough to inspect
+- clear enough for new users
+- useful for maintainers
+- safe by default
+- automation-friendly
+- conservative with local system changes

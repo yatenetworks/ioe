@@ -1,37 +1,49 @@
-module_id: static.web.basic
+module_id: local.example.basic
 template_version: 1
-name: Static Web Basic Module
-description: Example local application environment template.
+name: Local Example Basic Module
+description: Minimal local module template example for IOE public documentation.
 source:
   type: local
-  url: path/to/static.web.basic
+  path: templates/modules/local.example.basic
 license: MIT
-capabilities:
-  - capability.demo.static_web
+runtime:
+  adapter: docker-compose
+  compose_file: docker-compose.yml
 resource_profile:
   cpu_min: 1
-  ram_mb_min: 128
-  disk_mb_min: 128
-  gpu_required: false
-lifecycle_mode: standby
-healthcheck:
-  type: http
-  path: /
-  port: 18081
+  ram_mb_min: 256
+  disk_mb_min: 256
+  accelerator_required: false
+ports:
+  - name: http
+    host_port: 18081
+    container_port: 8080
+    public: false
+storage:
+  data_root: ${IOE_DATA_DIR:-~/ioe-data}
+  app_data: apps/local.example.basic/
+  backups: backups/local.example.basic/
+models: []
+lifecycle:
+  healthcheck: healthcheck.sh
+healthchecks:
+  mode: all
+  checks:
+    - name: http
+      type: http
+      url: http://127.0.0.1:18081/health
+      timeout_seconds: 10
+logging:
+  default_tail: 100
+  sources:
+    - type: docker-compose
+      service: app
+cleanup_policy:
+  preserve_data_by_default: true
+  destructive_cleanup_requires_confirmation: true
 security_policy:
-  risk_class: digital_only
   needs_root: false
   needs_docker_socket: false
+  privileged: false
   public_exposure: false
-recovery_policy:
-  restart: true
-  recreate: true
-  restore_from_backup: false
-  reinstall: true
-  max_attempts: 3
-  backoff_seconds: 10
-cleanup_policy:
-  destroy_after_complete: false
-  standby_after_complete: true
-  cleanup_temp_files: true
 extensions: {}

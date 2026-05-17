@@ -1,14 +1,25 @@
 # Security Policy
 
-IOE AI Env Installer is a server setup tool. Security matters because the tool may configure Docker, firewall rules, application directories, and local runtime services.
+IOE AI Env Installer is intended to help standardize AI application environment templates. Security matters because templates may define containers, ports, data paths, environment variables, and local lifecycle behavior.
 
-## Supported Use
+## Current public status
 
-This project is intended for fresh Linux servers.
+The public installer is not active yet.
 
-Do not run it on existing production servers unless you have reviewed the script, tested it, and prepared a backup and rollback plan.
+`install-ioe.sh` currently exits safely and does not modify the system. It is kept as a stable future entry name while the project focuses on public documentation, template standards, and clean-server testing.
 
-## Reporting Security Issues
+## Supported use
+
+Use this repository for:
+
+- reviewing public template standards
+- discussing module manifest structure
+- contributing safe examples
+- testing local preview behavior when a tested preview installer is released
+
+Do not assume production readiness.
+
+## Reporting security issues
 
 Please do not disclose security vulnerabilities in public issues.
 
@@ -16,73 +27,56 @@ If you find a security problem, report it privately to the maintainer.
 
 Include:
 
-- A clear description of the issue
-- Steps to reproduce
-- Affected files or commands
-- Possible impact
-- Suggested fix, if available
-
-## Security Defaults
-
-The installer is designed to follow conservative defaults:
-
-- Do not modify SSH configuration by default
-- Do not close port `22` by default
-- Do not overwrite an existing Docker daemon configuration
-- Do not reset an existing firewall rule set
-- Do not store user API keys in source code
-- Do not commit `.env` files
-- Keep optional extension features disabled by default
-
-## Docker Socket Warning
-
-If the backend or panel mounts:
-
-```text
-/var/run/docker.sock
-```
-
-it can control the host Docker engine.
-
-Do not expose any API with Docker socket access to the public Internet without authentication and proper access control.
+- a clear description of the issue
+- steps to reproduce
+- affected files or commands
+- possible impact
+- suggested fix, if available
 
 ## Secrets
 
 Never commit:
 
 - API keys
-- Cloud credentials
+- cloud credentials
 - SSH private keys
-- Database passwords
+- database passwords
 - `.env` files
-- User data directories
+- user data directories
 
-Use environment variables or user-provided configuration.
+Use `.env.example` with placeholders.
 
-## Firewall and Cloud Security Groups
+## Docker socket warning
 
-The installer may configure local firewall rules.
+A container or service with access to:
 
-Your cloud provider may also have a separate firewall or security group.
+```text
+/var/run/docker.sock
+```
 
-You are responsible for checking both:
+can control the host Docker engine.
 
-- Server firewall
-- Cloud provider firewall or security group
+Templates should avoid Docker socket access unless strictly required and clearly documented.
 
-## Clean Server Requirement
+## Port exposure
 
-For safety, use a fresh Linux server.
+Templates should not expose databases, caches, queues, or internal control APIs directly to the public Internet by default.
 
-Avoid running the installer on servers with:
+All public ports should be clearly documented.
 
-- Existing production workloads
-- Important Docker containers
-- Custom networking rules
-- Existing panels
-- Unknown system state
+## Clean server requirement
 
-## No Warranty
+When an active installer is released, it should be tested on a fresh Linux server first.
+
+Avoid running experimental install scripts on servers with:
+
+- existing production workloads
+- important Docker containers
+- custom networking rules
+- unknown system state
+- data without backups
+
+## No warranty
 
 This project is provided without warranty.
 

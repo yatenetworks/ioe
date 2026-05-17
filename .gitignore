@@ -1,13 +1,12 @@
-# Environment & secrets
+# Environment and secrets
 .env
 .env.*
 !.env.example
 !.env.sample
-frontend/.env.local
 
-# Logs (local / CI — never commit)
-.build-log.txt
+# Logs
 *.log
+.build-log.txt
 
 # Python
 __pycache__/
@@ -34,19 +33,14 @@ out/
 .DS_Store
 .cursor/
 
-# Review / packaging temp (do not commit)
+# Review / packaging temp
 REVIEW_FILE_LIST.txt
 PACKAGE_CONTENTS.txt
 
-# Private full-core backup (never publish)
+# Private or local-only material
 *.private.py
 docs/private-backup/
+private/
 
-# User data (universal storage sandbox — never commit; installer default is ~/ioe-data)
+# User data
 ioe-data/
-ioe-opt-telemetry/
-ioe-panel-data/
-
-# GitHub trending cache (generated on server)
-backend/trending_cache.json
-backend/trending_cache.json.tmp

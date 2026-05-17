@@ -1,131 +1,132 @@
 # Application Template Policy
 
-This document defines the basic rules for application templates supported by IOE AI Env Installer.
+This policy describes expectations for IOE-compatible AI application environment templates.
 
-## Supported Application Types
+The goal is to make templates easier to review, test, and run safely on clean Linux servers.
 
-Supported templates should be:
+## Template goals
 
-- Legal open-source applications
-- Docker or Docker Compose based
-- Reasonable for a normal VPS
-- Documented clearly
-- Suitable for local or self-hosted deployment
+A template should be:
 
-## Preferred Application Types
+- easy to inspect
+- easy to validate
+- easy to run locally
+- clear about ports
+- clear about data paths
+- clear about model assets
+- clear about logs
+- clear about health checks
+- conservative with host changes
+- safe to remove without deleting persistent data by default
 
-Good template candidates include:
+## Required direction
 
-- AI knowledge base tools
-- RAG applications
-- AI content tools
-- AI assistant tools
-- AI translation tools
-- AI workflow tools
-- Developer productivity tools
-- Lightweight model or API utilities
+Templates should follow the IOE lifecycle:
 
-## Basic Requirements
-
-Each application template should include:
-
-- Application name
-- Source repository
-- License
-- Required ports
-- Required environment variables
-- Minimum recommended CPU and RAM
-- Storage paths
-- Backup notes
-- Basic health check notes
-
-## Storage Requirement
-
-All persistent application data must be stored under:
-
-```text
-~/ioe-data/apps/<app_name>/
+```bash
+ioectl validate module <module.yaml>
+ioectl module install <module.yaml>
+ioectl module start <module_id>
+ioectl module status <module_id>
+ioectl module logs <module_id>
+ioectl module stop <module_id>
+ioectl module remove <module_id>
 ```
 
-Backups must be stored under:
+Templates should be automation-friendly and should not require manual prompts during validation.
+
+## Expected files
+
+A simple template should include:
 
 ```text
-~/ioe-data/backups/<app_name>/
+module.yaml
+docker-compose.yml
+.env.example
+README.md
+healthcheck.sh
 ```
 
-Models should be stored under:
+Additional scripts may be included when needed, but they should be declared in `module.yaml` and easy to review.
+
+## Data and model paths
+
+Templates should use the IOE data layout:
 
 ```text
+~/ioe-data/apps/<module_id>/
+~/ioe-data/backups/<module_id>/
 ~/ioe-data/models/
 ```
 
-Avoid unnamed Docker volumes unless there is a clear reason.
+Templates should not write persistent data into unclear locations.
 
-## Environment Variables
+Model assets should be declared in `module.yaml` when possible.
 
-Templates must not include real secrets.
+## Logs
 
-Do not hardcode:
+Templates should declare log sources where possible:
 
-- API keys
-- Passwords
-- Tokens
-- Private URLs
-- Cloud credentials
-- SSH keys
-
-Use placeholders instead.
-
-Example:
-
-```env
-OPENAI_API_KEY=change-me
-DATABASE_PASSWORD=change-me
+```yaml
+logging:
+  default_tail: 100
+  sources:
+    - type: docker-compose
+      service: app
 ```
 
-## Port Rules
+Users should be able to inspect logs through:
 
-Templates must clearly document exposed ports.
+```bash
+ioectl module logs <module_id> --tail 100
+```
 
-Avoid exposing internal services such as databases, caches, or message queues directly to the public Internet.
-
-If an application needs public access, prefer a reverse proxy.
-
-## Security Rules
+## Safety rules
 
 Templates should avoid:
 
-- Privileged containers unless absolutely necessary
-- Host networking unless clearly justified
-- Unrestricted volume mounts
-- Hardcoded admin passwords
-- Public database ports
-- Unsafe default credentials
+- hardcoded secrets
+- public database ports by default
+- privileged containers unless clearly justified
+- broad host volume mounts
+- hidden background services
+- unreviewed binary downloads
+- destructive cleanup by default
+- changing firewall rules without explicit documentation
 
-## Not Accepted
+## Remove behavior
 
-Templates should not include:
+`remove` should preserve persistent user data by default.
 
-- Malware
-- Phishing tools
-- Credential theft tools
-- Unauthorized scraping tools
-- Adult or pornographic services
-- Gambling services
-- Copyright-infringing services
-- Applications without clear license permission
-- Applications that collect user data without disclosure
+Destructive cleanup must require explicit confirmation, such as:
 
-## Review Notes
+```bash
+ioectl module remove <module_id> --delete-data --confirm <module_id>
+```
 
-Before adding a template, check:
+In non-interactive mode, destructive cleanup should be rejected unless explicit confirmation flags are present.
 
-- License
-- Resource usage
+## Review checklist
+
+Before a template is accepted, reviewers should check:
+
+- license clarity
+- source clarity
+- port declarations
+- environment variables
+- data path behavior
+- model asset declarations
+- health check behavior
+- log source behavior
 - Docker Compose safety
-- Port exposure
-- Data paths
-- Backup behavior
-- Basic startup behavior
+- secret handling
+- uninstall behavior
+- clean-server test notes
 
-Templates should be simple, predictable, and easy to remove.
+## Current boundary
+
+This is a public template policy draft.
+
+It is not a production guarantee and not a promise that every field is final.
+
+The immediate goal is to make local AI application environment templates easier to review and test.

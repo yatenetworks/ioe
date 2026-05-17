@@ -2,46 +2,53 @@
 
 Thank you for your interest in contributing to IOE AI Env Installer.
 
-This project is a simple open-source tool for setting up AI application environments on clean Linux servers.
+IOE focuses on a practical open-source goal:
 
-## Contribution Scope
+> Make AI application environment templates easier to validate, install, run, inspect, and remove on clean Linux servers.
+
+## Useful contributions
 
 Useful contributions include:
 
-- Installer script improvements
-- Docker Compose templates
-- Application template fixes
-- Documentation improvements
-- Security hardening
-- Backup and restore improvements
-- Compatibility testing on Linux distributions
-- Bug reports with logs and reproduction steps
+- documentation improvements
+- module template examples
+- template validation rules
+- automation-friendly CLI output examples
+- model asset declaration examples
+- log source declaration examples
+- Docker Compose safety improvements
+- clean-server test reports
+- compatibility notes for Linux distributions
+- security review suggestions
+- bug reports with clear reproduction steps
 
-## Project Principles
+## Project principles
 
 Please keep changes aligned with these principles:
 
-- Keep deployment simple
-- Preserve user data
-- Avoid unnecessary system changes
-- Do not overwrite existing configuration without care
-- Do not hardcode secrets
-- Keep storage paths predictable
-- Prefer clear logs and safe failure behavior
-- Keep optional features disabled by default
+- keep the project simple to inspect
+- preserve user data by default
+- avoid unnecessary system changes
+- avoid hardcoded secrets
+- keep storage paths predictable
+- prefer clear logs and safe failure behavior
+- prefer structured output for automation-sensitive commands
+- avoid blocking prompts in non-interactive contexts
+- keep public examples low-risk and easy to test
+- reuse existing tools instead of replacing them
 
-## Data Path Contract
+## Data path contract
 
-Application data must use:
+Application data should use:
 
 ```text
-~/ioe-data/apps/<app_name>/
+~/ioe-data/apps/<module_id>/
 ```
 
-Backups must use:
+Backups should use:
 
 ```text
-~/ioe-data/backups/<app_name>/
+~/ioe-data/backups/<module_id>/
 ```
 
 Models should use:
@@ -50,60 +57,65 @@ Models should use:
 ~/ioe-data/models/
 ```
 
-Do not introduce random Docker volumes or unclear host paths.
+Do not introduce random Docker volumes or unclear host paths without a clear reason.
 
-## Do Not Commit Secrets
+## Do not commit secrets
 
 Never commit:
 
 - `.env`
 - API keys
 - SSH private keys
-- Database passwords
-- Cloud credentials
-- Local user data
+- database passwords
+- cloud credentials
+- local user data
 - `~/ioe-data`
 
-## Code Checks
+Use `.env.example` with placeholders.
 
-Before submitting changes, run checks when possible.
+## Template contributions
 
-For shell scripts:
+A good module template should include:
 
-```bash
-bash -n install-ioe.sh
+```text
+module.yaml
+docker-compose.yml
+.env.example
+README.md
+healthcheck.sh
 ```
 
-For Python:
-
-```bash
-python -m py_compile $(find backend -name "*.py")
-```
-
-For frontend code, if Node.js is available:
-
-```bash
-npm run build
-```
-
-## Pull Request Guidelines
-
-A good pull request should include:
-
-- What changed
-- Why it changed
-- How it was tested
-- Any compatibility notes
-- Any security impact
-
-Keep changes focused and easy to review.
-
-## Application Templates
-
-Application templates should follow:
+Templates should follow:
 
 ```text
 docs/APP_TEMPLATE_POLICY.md
+docs/MODULE_TEMPLATE_STANDARD.md
+docs/AUTOMATION_FRIENDLY_CLI_STANDARD.md
+docs/ADAPTER_INTERFACE_DRAFT.md
 ```
 
 Templates must not include hardcoded secrets or unsafe defaults.
+
+## Pull request guidelines
+
+A good pull request should explain:
+
+- what changed
+- why it changed
+- how it was tested
+- any compatibility notes
+- any security impact
+- whether persistent data behavior changed
+
+Keep changes focused and easy to review.
+
+## Script status
+
+The public installer entry names are reserved as:
+
+```text
+install-ioe.sh
+install.sh
+```
+
+At the current public documentation stage, these scripts should not perform server installation unless the repository README clearly marks the preview installer as active and tested.
