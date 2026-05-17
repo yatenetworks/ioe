@@ -109,11 +109,11 @@ case "${1:-}" in
     else
       echo "inactive: public preview installer has not been enabled yet"
     fi
-    exit 2
+    exit 0
     ;;
   --json)
     show_status_json
-    exit 2
+    exit 0
     ;;
   "")
     show_help
