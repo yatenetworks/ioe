@@ -1,0 +1,222 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://ioe.local/schemas/v0/module.manifest.schema.yaml"
+title: "IOE Module Manifest"
+type: object
+required:
+  - module_id
+  - template_version
+  - name
+  - source
+  - license
+  - capabilities
+  - resource_profile
+  - lifecycle_mode
+  - healthcheck
+  - security_policy
+  - recovery_policy
+properties:
+  module_id:
+    type: string
+    pattern: "^[a-z0-9][a-z0-9._-]{2,127}$"
+  template_version:
+    type: integer
+    minimum: 1
+  manifest_schema_version:
+    type: string
+    default: v0
+  name:
+    type: string
+    minLength: 1
+  description:
+    type: string
+  source:
+    type: object
+    required:
+      - type
+      - url
+    properties:
+      type:
+        type: string
+        enum:
+          - git
+          - image
+          - archive
+          - local
+      url:
+        type: string
+      ref:
+        type: string
+  license:
+    type: string
+  capabilities:
+    type: array
+    minItems: 1
+    items:
+      type: string
+      pattern: "^capability\\.[a-z0-9_.-]+$"
+  inputs:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        required:
+          type: boolean
+  outputs:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+  resource_profile:
+    type: object
+    properties:
+      cpu_min:
+        type: number
+        minimum: 0
+      ram_mb_min:
+        type: integer
+        minimum: 0
+      disk_mb_min:
+        type: integer
+        minimum: 0
+      gpu_required:
+        type: boolean
+      gpu_vram_mb_min:
+        type: integer
+        minimum: 0
+  lifecycle_mode:
+    type: string
+    enum:
+      - ephemeral
+      - standby
+      - persistent
+      - critical
+  healthcheck:
+    type: object
+    required:
+      - type
+    properties:
+      type:
+        type: string
+        enum:
+          - http
+          - tcp
+          - command
+          - none
+      path:
+        type: string
+      port:
+        type: integer
+      command:
+        type: string
+      interval_seconds:
+        type: integer
+        minimum: 1
+  data_paths:
+    type: object
+    properties:
+      persistent:
+        type: string
+      backup:
+        type: string
+      models:
+        type: string
+  ports:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        internal_port:
+          type: integer
+        expose:
+          type: boolean
+  routes:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        path:
+          type: string
+        public:
+          type: boolean
+  backup:
+    type: object
+    properties:
+      supported:
+        type: boolean
+      command:
+        type: string
+  restore:
+    type: object
+    properties:
+      supported:
+        type: boolean
+      command:
+        type: string
+  security_policy:
+    type: object
+    required:
+      - risk_class
+      - needs_root
+      - needs_docker_socket
+      - public_exposure
+    additionalProperties: false
+    properties:
+      risk_class:
+        type: string
+        enum:
+          - digital_only
+      needs_root:
+        type: boolean
+        const: false
+      needs_docker_socket:
+        type: boolean
+      public_exposure:
+        type: boolean
+      required_rule_packs:
+        type: array
+        items:
+          type: string
+  recovery_policy:
+    type: object
+    required:
+      - max_attempts
+    properties:
+      restart:
+        type: boolean
+      recreate:
+        type: boolean
+      restore_from_backup:
+        type: boolean
+      reinstall:
+        type: boolean
+      max_attempts:
+        type: integer
+        minimum: 0
+      backoff_seconds:
+        type: integer
+        minimum: 0
+  cleanup_policy:
+    type: object
+    properties:
+      destroy_after_complete:
+        type: boolean
+      standby_after_complete:
+        type: boolean
+      cleanup_temp_files:
+        type: boolean
+  extensions:
+    type: object
+    additionalProperties: true
+additionalProperties: false

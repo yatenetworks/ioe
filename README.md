@@ -198,58 +198,57 @@ Model files should be placed under:
 
 The data root should be configurable later, but the default must remain clear and predictable.
 
+## Local runnable preview
+
+An early **local preview / testing only** installer is available for supported Linux targets.
+
+- tested on Debian 12, Ubuntu 22.04 LTS, and Ubuntu 24.04 LTS during private preview work
+- local Docker-based module lifecycle preview
+- install layout: `/opt/ioe-preview` with data under `/opt/ioe-data`
+- lifecycle commands: validate, install, start, status, logs, stop, remove
+- not a production installer, not a hosted service, and not a public roadmap commitment
+
+Package and details:
+
+- [public-runnable-preview/README.md](public-runnable-preview/README.md)
+- [public-runnable-preview/docs/LOCAL_RUNNABLE_PREVIEW.md](public-runnable-preview/docs/LOCAL_RUNNABLE_PREVIEW.md)
+
+Remote install entrypoint (run on a test VPS as root):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/yatenetworks/ioe/main/install-ioe.sh | bash
+```
+
+After install:
+
+```bash
+cd /opt/ioe-preview/public-runnable-preview
+./install-ioe.sh
+bash scripts/test-ioectl-lifecycle.sh
+```
+
 ## Installer scripts
 
-`install-ioe.sh` is the canonical future installer name.
+`install-ioe.sh` is the canonical remote install entrypoint for the local runnable preview (testing only).
 
-`install.sh` is only a small compatibility wrapper that delegates to `install-ioe.sh`. It exists so users who expect a conventional `install.sh` entrypoint are not confused, while the project still keeps one real installer implementation.
+`install.sh` is a compatibility wrapper that delegates to `install-ioe.sh`.
 
-The public installer is not active yet. Until the preview installer has passed clean VPS testing, these scripts do not install packages, start containers, change firewall rules, or modify the host system.
+`public-runnable-preview/install-ioe.sh` is the package-internal script for local repair and self-check on an already extracted tree. It does not download the archive unless both `IOE_PREVIEW_URL` and `IOE_PREVIEW_SHA256` are set.
 
-## Current status
+The preview installer:
 
-This repository is currently focused on public documentation, template standards, and a conservative preview direction.
-
-The public installer is **not active yet**.
-
-The files `install-ioe.sh` and `install.sh` are kept as stable public entry names, but they currently exit safely and do not install or modify the server. They will be replaced by a tested preview installer after clean-server testing is complete.
-
-Do not use `curl | bash` commands from this repository until the README says that the preview installer is active.
-
-## Installer status
-
-Current behavior:
-
-```bash
-bash install-ioe.sh
-```
-
-The script prints a preview notice and exits without changing the system.
-
-Planned behavior after testing:
-
-```bash
-bash install-ioe.sh
-```
-
-The preview installer may later:
-
-- check the operating system
-- install required dependencies
-- install Docker and Docker Compose if needed
-- prepare the IOE data layout
-- install a local `ioectl` preview
-- validate example module templates
-- optionally run a local smoke test
-- print next-step CLI commands
-
-The first public installer should remain local-only, conservative, and easy to inspect.
+- downloads and verifies the preview package
+- installs Docker only when missing (using `apt-get` and `--no-install-recommends`)
+- runs light validation only
+- does not automatically start all modules
+- is intended for early testing, not production deployment
 
 ## Public documentation
 
 Start here:
 
 - [Why IOE](docs/WHY_IOE.md)
+- [Template ecosystem model](docs/TEMPLATE_ECOSYSTEM_MODEL.md)
 - [Module template standard](docs/MODULE_TEMPLATE_STANDARD.md)
 - [Module manifest draft](docs/MODULE_MANIFEST_DRAFT.md)
 - [Template validation](docs/TEMPLATE_VALIDATION.md)
@@ -257,6 +256,7 @@ Start here:
 - [Adapter interface draft](docs/ADAPTER_INTERFACE_DRAFT.md)
 - [Application template policy](docs/APP_TEMPLATE_POLICY.md)
 - [Local module lifecycle preview](docs/LOCAL_MODULE_RUNTIME_PREVIEW.md)
+- [Local runnable preview package](public-runnable-preview/docs/LOCAL_RUNNABLE_PREVIEW.md)
 
 Example files:
 
