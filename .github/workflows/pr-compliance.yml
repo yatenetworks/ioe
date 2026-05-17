@@ -26,12 +26,12 @@ jobs:
           set -euo pipefail
           PATTERN='distributed runtime|scheduler|marketplace|identity|settlement|federation|native protocol|machine-to-machine|cellular|next-generation|global AI network|node economy|蜂窝|节点经济|身份|联邦|下一代|机器间|协议费|控制面板|面板'
           if grep -RInE "$PATTERN" \
+            --exclude='pr-compliance.yml' \
+            --exclude='RELEASE_CHECKLIST.md' \
             README.md docs examples install-ioe.sh install.sh \
             CODE_OF_CONDUCT.md ACCEPTABLE_USE.md CONTRIBUTOR_TERMS.md \
             DEVELOPER_CERTIFICATE_OF_ORIGIN.md THIRD_PARTY_POLICY.md \
             .github \
-            --exclude='pr-compliance.yml' \
-            --exclude='RELEASE_CHECKLIST.md' \
             2>/dev/null; then
             echo "::error::Found disallowed wording in public paths."
             exit 1
