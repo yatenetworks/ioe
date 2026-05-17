@@ -1,0 +1,43 @@
+module_id: hello.basic
+manifest_schema_version: v0
+template_version: 1
+name: Hello Basic Module
+description: Minimal local module used to test IOE module lifecycle commands.
+source:
+  type: local
+  url: templates/modules/hello.basic
+license: MIT
+capabilities:
+  - capability.demo.hello
+resource_profile:
+  cpu_min: 1
+  ram_mb_min: 128
+  disk_mb_min: 128
+  gpu_required: false
+lifecycle_mode: standby
+healthcheck:
+  type: http
+  path: /
+  port: 18080
+security_policy:
+  risk_class: digital_only
+  needs_root: false
+  needs_docker_socket: false
+  public_exposure: false
+recovery_policy:
+  restart: true
+  recreate: true
+  restore_from_backup: false
+  reinstall: true
+  max_attempts: 3
+  backoff_seconds: 10
+cleanup_policy:
+  destroy_after_complete: false
+  standby_after_complete: true
+  cleanup_temp_files: true
+extensions:
+  ioe.local:
+    compose_file: docker-compose.yaml
+    healthcheck_file: healthcheck.sh
+    backup_file: backup.sh
+    restore_file: restore.sh

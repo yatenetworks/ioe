@@ -1,24 +1,15 @@
 #!/usr/bin/env bash
-# =============================================================================
-# IOE AI Env Installer — remote entrypoint (local preview / testing only)
-#
-# Downloads the public runnable preview package, verifies SHA256, installs Docker
-# when missing, runs light validation, and prints next-step commands.
-#
-# Not for production use. Tested targets: Debian 12, Ubuntu 22.04 LTS, Ubuntu 24.04 LTS.
-# =============================================================================
+# IOE local runnable preview: local repair/self-check by default (testing only).
+# Remote download/reinstall only when BOTH IOE_PREVIEW_URL and IOE_PREVIEW_SHA256 are set.
 set -Eeuo pipefail
 
-IOE_PREVIEW_URL="${IOE_PREVIEW_URL:-https://job788.net/ioe-public-runnable-preview-v0.8-repair-20260517.tar.gz}"
-IOE_PREVIEW_SHA256="${IOE_PREVIEW_SHA256:-3811988d4ecf721c58896d8b60aaff8dba68191604b73fe4d257187d92b53b21}"
-INSTALLER_URL="${IOE_INSTALLER_URL:-https://raw.githubusercontent.com/yatenetworks/ioe/main/install-ioe.sh}"
-
 INSTALL_DIR="/opt/ioe-preview"
-PREVIEW_DIR="${INSTALL_DIR}/public-runnable-preview"
 DATA_DIR="/opt/ioe-data"
 ARCHIVE="${INSTALL_DIR}/ioe-public-runnable-preview.tar.gz"
 LOG_FILE="/var/log/ioe-preview-install.log"
 LOCK_FILE="/var/lock/ioe-preview-install.lock"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
   printf '[%s] %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "$*" | tee -a "${LOG_FILE}"
@@ -38,94 +29,15 @@ on_err() {
 }
 trap on_err ERR
 
-show_help() {
-  cat <<'NOTICE'
-IOE AI Env Installer — local runnable preview (testing only)
-
-This script is the remote install entrypoint for early local preview testing.
-It is not a production installer and does not provide a hosted service.
-
-Tested targets:
-  - Debian 12
-  - Ubuntu 22.04 LTS
-  - Ubuntu 24.04 LTS
-
-What it does:
-  - downloads the preview package archive
-  - verifies SHA256
-  - installs Docker only if missing (apt-get, --no-install-recommends)
-  - extracts to /opt/ioe-preview
-  - uses /opt/ioe-data for module data
-  - runs light ioectl validation only
-  - does not automatically start all modules
-
-Override download (optional):
-  IOE_PREVIEW_URL
-  IOE_PREVIEW_SHA256
-
-After install:
-  cd /opt/ioe-preview/public-runnable-preview
-  ./install-ioe.sh
-  bash scripts/test-ioectl-lifecycle.sh
-
-Read first:
-  - README.md
-  - public-runnable-preview/README.md
-  - public-runnable-preview/docs/LOCAL_RUNNABLE_PREVIEW.md
-NOTICE
-}
-
-show_status_json() {
-  cat <<'JSON'
-{
-  "installer": "install-ioe.sh",
-  "active": true,
-  "status": "preview-testing",
-  "mode": "local-preview-remote-install",
-  "makes_system_changes": true,
-  "testing_only": true,
-  "install_dir": "/opt/ioe-preview",
-  "data_dir": "/opt/ioe-data",
-  "standard_direction": {
-    "lifecycle": [
-      "validate",
-      "install",
-      "start",
-      "status",
-      "logs",
-      "stop",
-      "remove"
-    ],
-    "structured_output": true,
-    "non_interactive_safe_defaults": true
-  }
-}
-JSON
-}
-
 require_root() {
   if [[ "${EUID}" -eq 0 ]]; then
     return 0
   fi
-
-  local script_path
-  script_path="$(readlink -f "$0" 2>/dev/null || true)"
-
-  if [[ -n "${script_path}" && -f "${script_path}" ]]; then
-    if command -v sudo >/dev/null 2>&1; then
-      echo "Re-running installer as root via sudo -H" >&2
-      exec sudo -H bash "${script_path}" "$@"
-    fi
-    echo "ERROR: sudo is required to run this installer as root" >&2
-    exit 1
+  if command -v sudo >/dev/null 2>&1; then
+    echo "Re-running installer as root via sudo -H" >&2
+    exec sudo -H bash "$0" "$@"
   fi
-
-  cat >&2 <<EOF
-Please download the installer first, then run it with sudo:
-  curl -fsSL ${INSTALLER_URL} -o install-ioe.sh
-  chmod +x install-ioe.sh
-  sudo ./install-ioe.sh
-EOF
+  echo "ERROR: This installer must be run as root or via sudo" >&2
   exit 1
 }
 
@@ -137,7 +49,20 @@ acquire_lock() {
   fi
 }
 
-validate_remote_config() {
+remote_install_requested() {
+  [[ -n "${IOE_PREVIEW_URL:-}" && -n "${IOE_PREVIEW_SHA256:-}" ]]
+}
+
+validate_remote_env_pair() {
+  if [[ -n "${IOE_PREVIEW_URL:-}" && -z "${IOE_PREVIEW_SHA256:-}" ]]; then
+    fatal "IOE_PREVIEW_SHA256 is required when IOE_PREVIEW_URL is set"
+  fi
+  if [[ -z "${IOE_PREVIEW_URL:-}" && -n "${IOE_PREVIEW_SHA256:-}" ]]; then
+    fatal "IOE_PREVIEW_URL is required when IOE_PREVIEW_SHA256 is set"
+  fi
+}
+
+validate_remote_install_config() {
   if [[ ! "${IOE_PREVIEW_URL}" =~ ^https?:// ]]; then
     fatal "IOE_PREVIEW_URL must start with http:// or https://"
   fi
@@ -160,14 +85,17 @@ detect_os() {
   case "${ID}:${VERSION_ID}" in
     debian:12 | debian:12.*)
       OS_FAMILY="debian"
+      OS_VERSION_ID="12"
       DOCKER_CODENAME="${VERSION_CODENAME:-bookworm}"
       ;;
     ubuntu:22.04 | ubuntu:22.04.*)
       OS_FAMILY="ubuntu"
+      OS_VERSION_ID="22.04"
       DOCKER_CODENAME="${UBUNTU_CODENAME:-${VERSION_CODENAME:-jammy}}"
       ;;
     ubuntu:24.04 | ubuntu:24.04.*)
       OS_FAMILY="ubuntu"
+      OS_VERSION_ID="24.04"
       DOCKER_CODENAME="${UBUNTU_CODENAME:-${VERSION_CODENAME:-noble}}"
       ;;
     *)
@@ -215,6 +143,12 @@ install_base_packages() {
 install_docker() {
   if docker_ready; then
     log "Docker and Docker Compose already available; skipping Docker install"
+    docker --version | tee -a "${LOG_FILE}"
+    if docker compose version >/dev/null 2>&1; then
+      docker compose version | tee -a "${LOG_FILE}"
+    else
+      docker-compose version | tee -a "${LOG_FILE}"
+    fi
     return 0
   fi
 
@@ -244,7 +178,11 @@ install_docker() {
 download_preview_archive() {
   log "Downloading preview archive from ${IOE_PREVIEW_URL}"
   if ! curl -fL --retry 3 --retry-delay 2 -o "${ARCHIVE}" "${IOE_PREVIEW_URL}"; then
-    fatal "failed to download preview archive from ${IOE_PREVIEW_URL}"
+    log "ERROR: failed to download preview archive from ${IOE_PREVIEW_URL}"
+    log "Please check IOE_PREVIEW_URL and network access."
+    echo "ERROR: failed to download preview archive from ${IOE_PREVIEW_URL}" >&2
+    echo "Please check IOE_PREVIEW_URL and network access." >&2
+    exit 1
   fi
 }
 
@@ -264,7 +202,8 @@ verify_preview_archive_sha256() {
 }
 
 download_and_extract_preview() {
-  rm -rf "${PREVIEW_DIR}"
+  local preview_dir="${INSTALL_DIR}/public-runnable-preview"
+  rm -rf "${preview_dir}"
   install -d -m 0755 "${INSTALL_DIR}" "${DATA_DIR}"
 
   download_preview_archive
@@ -272,7 +211,9 @@ download_and_extract_preview() {
 
   log "Extracting archive to ${INSTALL_DIR}"
   tar -xzf "${ARCHIVE}" -C "${INSTALL_DIR}"
-  [[ -d "${PREVIEW_DIR}" ]] || fatal "Preview directory not found after extract: ${PREVIEW_DIR}"
+
+  [[ -d "${preview_dir}" ]] || fatal "Preview directory not found after extract: ${preview_dir}"
+  PREVIEW_DIR="${preview_dir}"
 }
 
 assert_preview_tree() {
@@ -289,10 +230,23 @@ assert_preview_tree() {
   done
 }
 
+assert_local_preview_directory() {
+  if [[ "$(basename "${SCRIPT_DIR}")" != "public-runnable-preview" ]]; then
+    fatal "This script must live in a directory named public-runnable-preview (found: ${SCRIPT_DIR})"
+  fi
+  PREVIEW_DIR="${SCRIPT_DIR}"
+  log "Local repair mode: using preview tree at ${PREVIEW_DIR}"
+}
+
 reject_shipped_artifacts_in_tree() {
   if find "${PREVIEW_DIR}" \( -name .venv -o -name __pycache__ -o -name '*.pyc' \) 2>/dev/null | grep -q .; then
-    fatal "Preview tree must not contain .venv, __pycache__, or .pyc files"
+    fatal "Preview tree must not contain .venv, __pycache__, or .pyc files (remote install only)"
   fi
+}
+
+ensure_data_dir() {
+  install -d -m 0755 "${DATA_DIR}"
+  log "Data directory: ${DATA_DIR}"
 }
 
 setup_python_env() {
@@ -300,6 +254,8 @@ setup_python_env() {
   if [[ ! -d .venv ]]; then
     log "Creating Python virtual environment at ${PREVIEW_DIR}/.venv"
     python3 -m venv .venv
+  else
+    log "Using existing virtual environment at ${PREVIEW_DIR}/.venv"
   fi
   # shellcheck source=/dev/null
   source .venv/bin/activate
@@ -314,6 +270,7 @@ write_env_defaults() {
 export IOE_DATA_DIR=${DATA_DIR}
 EOF
   chmod 0644 /etc/ioe-preview/env
+  log "Wrote ${DATA_DIR} default via /etc/ioe-preview/env (IOE_DATA_DIR)"
 }
 
 run_light_checks() {
@@ -324,32 +281,33 @@ run_light_checks() {
   source /etc/ioe-preview/env
 
   ./ioectl --help >/dev/null
+  ./ioectl -h >/dev/null
+  ./ioectl help >/dev/null
   ./ioectl validate module templates/modules/hello.basic/module.yaml
   ./ioectl validate module templates/modules/static.web.basic/module.yaml
   ./ioectl validate module templates/modules/http.echo.basic/module.yaml
   log "Light install checks passed"
 }
 
-print_next_steps() {
+print_local_success() {
+  echo "== SUCCESS: IOE local preview repair completed =="
+}
+
+print_remote_next_steps() {
   cat <<EOF
 
 IOE local runnable preview remote install completed (testing only).
 
-Install root: ${INSTALL_DIR}
-Preview directory: ${PREVIEW_DIR}
 Data directory: ${DATA_DIR}
+Preview directory: ${PREVIEW_DIR}
 Log file: ${LOG_FILE}
 
 Next steps:
 
 cd ${PREVIEW_DIR}
-./install-ioe.sh
-bash scripts/test-ioectl-lifecycle.sh
-
-Optional manual lifecycle commands (after the steps above):
-
 source .venv/bin/activate
 source /etc/ioe-preview/env
+./ioectl validate module templates/modules/hello.basic/module.yaml
 ./ioectl module install templates/modules/hello.basic/module.yaml
 ./ioectl module start hello.basic
 ./ioectl module status hello.basic
@@ -357,11 +315,29 @@ source /etc/ioe-preview/env
 ./ioectl module stop hello.basic
 ./ioectl module remove hello.basic
 
+Full lifecycle test (optional):
+
+${PREVIEW_DIR}/scripts/test-ioectl-lifecycle.sh
+
 EOF
 }
 
+run_local_repair() {
+  assert_local_preview_directory
+  assert_preview_tree
+  ensure_data_dir
+  write_env_defaults
+  if ! command -v python3 >/dev/null 2>&1; then
+    fatal "python3 is required for local repair (install python3 and python3-venv)"
+  fi
+  setup_python_env
+  run_light_checks
+  print_local_success
+  log "Local preview repair completed successfully"
+}
+
 run_remote_install() {
-  validate_remote_config
+  validate_remote_install_config
   detect_os
   warn_low_memory
   install_base_packages
@@ -372,37 +348,65 @@ run_remote_install() {
   setup_python_env
   write_env_defaults
   run_light_checks
-  print_next_steps
+  print_remote_next_steps
   log "Remote preview install completed successfully"
 }
 
-case "${1:-}" in
-  -h|--help|help)
-    show_help
-    exit 0
-    ;;
-  --status|status)
-    if [[ "${2:-}" == "--json" ]]; then
-      show_status_json
-    else
-      echo "preview-testing: local runnable preview remote installer (testing only)"
-    fi
-    exit 0
-    ;;
-  --json)
-    show_status_json
-    exit 0
-    ;;
-  "")
-    require_root "$@"
-    install -d -m 0755 "$(dirname "${LOG_FILE}")"
-    : > "${LOG_FILE}"
+print_usage() {
+  cat <<'EOF'
+IOE local runnable preview repair installer
+
+Usage:
+  ./install-ioe.sh [--help]
+
+Default:
+  Run local repair/self-check mode for an already extracted preview package.
+
+Remote reinstall mode:
+  Set both IOE_PREVIEW_URL and IOE_PREVIEW_SHA256 to download and reinstall the preview package.
+
+Examples:
+  ./install-ioe.sh
+  IOE_PREVIEW_URL="https://example.com/ioe-preview.tar.gz" IOE_PREVIEW_SHA256="..." ./install-ioe.sh
+EOF
+}
+
+parse_args() {
+  case "${1:-}" in
+    -h|--help|help)
+      if [[ $# -gt 1 ]]; then
+        echo "ERROR: unexpected extra argument: $2" >&2
+        print_usage >&2
+        exit 1
+      fi
+      print_usage
+      exit 0
+      ;;
+    "")
+      ;;
+    *)
+      echo "ERROR: unknown argument: $1" >&2
+      print_usage >&2
+      exit 1
+      ;;
+  esac
+}
+
+main() {
+  parse_args "$@"
+  validate_remote_env_pair
+  require_root "$@"
+  install -d -m 0755 "$(dirname "${LOG_FILE}")"
+  : > "${LOG_FILE}"
+
+  if remote_install_requested; then
+    log "Remote download/reinstall mode (IOE_PREVIEW_URL + IOE_PREVIEW_SHA256)"
     acquire_lock
     run_remote_install
-    ;;
-  *)
-    echo "Unknown option: $1" >&2
-    echo "Run: bash install-ioe.sh --help" >&2
-    exit 2
-    ;;
-esac
+  else
+    log "Local repair/self-check mode (no remote download)"
+    run_local_repair
+  fi
+}
+
+main "$@"

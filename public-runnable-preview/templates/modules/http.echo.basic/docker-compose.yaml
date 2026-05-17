@@ -1,0 +1,12 @@
+services:
+  http-echo-basic:
+    image: hashicorp/http-echo:1.0
+    container_name: ioe-http-echo-basic
+    restart: unless-stopped
+    command:
+      - "-text=hello from IOE http.echo.basic"
+      - "-listen=:5678"
+    ports:
+      - "18082:5678"
+    labels:
+      ioe.module_id: "http.echo.basic"

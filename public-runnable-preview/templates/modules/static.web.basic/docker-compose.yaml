@@ -1,0 +1,9 @@
+services:
+  static-web-basic:
+    image: nginx:alpine
+    container_name: ioe-static-web-basic
+    restart: unless-stopped
+    ports:
+      - "18081:80"
+    labels:
+      ioe.module_id: "static.web.basic"
