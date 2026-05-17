@@ -55,6 +55,14 @@ Use this checklist when reviewing AI application environment module templates an
 - [ ] Template can be validated without manual prompts.
 - [ ] Status and validation examples align with [AUTOMATION_FRIENDLY_CLI_STANDARD.md](AUTOMATION_FRIENDLY_CLI_STANDARD.md).
 
+## AI app template status (community contributions)
+
+- [ ] Template README states **draft**, **tested**, or **verified** (see [AI_APP_TEMPLATE_CONTRIBUTION_GUIDE.md](AI_APP_TEMPLATE_CONTRIBUTION_GUIDE.md)).
+- [ ] **Draft** templates are not described as ready for general users.
+- [ ] **Tested** templates note at least one supported OS where lifecycle was run.
+- [ ] **Verified** templates link to or reference a compatibility report where applicable.
+- [ ] Contribution matches [AI_APP_TEMPLATE_CONTRIBUTION_GUIDE.md](AI_APP_TEMPLATE_CONTRIBUTION_GUIDE.md) lifecycle and data-safety rules.
+
 ## Policy alignment
 
 - [ ] Follows [APP_TEMPLATE_POLICY.md](APP_TEMPLATE_POLICY.md).
