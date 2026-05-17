@@ -50,7 +50,7 @@ acquire_lock() {
 }
 
 remote_install_requested() {
-  [[ -n "${IOE_PREVIEW_URL:-}" || -n "${IOE_PREVIEW_SHA256:-}" ]]
+  [[ -n "${IOE_PREVIEW_URL:-}" && -n "${IOE_PREVIEW_SHA256:-}" ]]
 }
 
 validate_remote_install_config() {
