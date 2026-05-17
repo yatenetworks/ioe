@@ -104,8 +104,8 @@ Keep pull requests focused and easy to inspect.
 ## What this guide does not cover
 
 - Multi-server orchestration
-- Account billing or identity systems
-- Catalog or marketplace features
+- Account billing or authentication systems
+- Central template catalog or listing features
 - Production installer guarantees
 
 IOE’s public focus remains a small, reviewable **AI application environment template** layer for local testing and self-hosted use.
