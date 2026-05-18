@@ -1,0 +1,150 @@
+# IOE public repository (yatenetworks/ioe) — Cursor rules
+
+## Role split
+
+- **Cursor**: execute, edit files, run tests, commit, push, fix routine Bugbot findings.
+- **ChatGPT**: roadmap, boundaries, risk calls, key PR review, merge recommendation.
+- **User**: final confirmation and merge click.
+
+## 1. Public positioning
+
+- Project name: **IOE AI Env Installer**
+- Positioning: a lightweight open-source tool for setting up **AI application environments** on clean Linux servers.
+- Keep wording low-key and practical.
+- Do not describe internal long-term strategy in this repository.
+- Do not advertise **production-ready** status.
+- Prefer: **local runnable preview**, **testing preview**, **AI application environment templates**, **ioectl lifecycle**.
+
+## 2. Hard public wording restrictions
+
+Never add public wording related to:
+
+- node economy
+- settlement
+- federation
+- native protocol
+- machine-to-machine coordination
+- next-generation internet
+- global AI network
+- cellular network strategy
+- MEC/cellular long-term strategy
+- identity/governance strategy
+- marketplace as a grand platform claim
+- production-ready claims
+
+Safer replacements when needed:
+
+- marketplace → template catalog / template list / template collection
+- scheduler → lifecycle automation / runner
+- next-generation → future / later
+- identity → authentication / account (only if strictly needed)
+
+## 3. Runtime / installer safety
+
+- Do not modify installer or runtime unless the task **explicitly** asks.
+- Do not expand shell scripts unnecessarily.
+- All root-running installer changes are **high-risk**.
+- Bugbot **Medium/High** must be fixed or escalated to the user.
+- Low duplication / dead code may be deferred only if explicitly recorded (e.g. v0.9 refactor).
+
+## 4. Template rules
+
+- New AI app templates start as **draft** / **testing**.
+- Do not mark templates **verified** without compatibility evidence.
+- Templates must preserve user data unless explicitly documented.
+- `remove` must be non-destructive by default.
+- No secrets, tokens, private keys, passwords, or hidden remote execution.
+- Prefer lifecycle: validate → install → start → status → logs → stop → remove.
+- LLM-generated templates are draft/unverified until tested and reviewed.
+
+## 5. Auto-run routine checks
+
+When command execution is available, **run routine safe checks directly**. Do not ask the user to manually copy routine commands.
+
+Run without asking (examples):
+
+- `git status --short`
+- `git diff --stat`
+- `git log --oneline`
+- `bash -n` on changed shell scripts
+- `python3 -m py_compile` on changed preview Python tools
+- `scripts/check-public-pr.sh`
+- `scripts/update-local-handoff.sh`
+- public-safe wording / secret grep checks (as in that script)
+- `ioectl validate module` for changed templates
+
+Ask for confirmation only before:
+
+- `sudo`
+- root install / root-only commands
+- `curl | bash` and other remote script downloads
+- destructive `rm` (especially `rm -rf`)
+- `git reset --hard`
+- `git clean -fdx`
+- force push
+- branch deletion
+- merge actions
+- tag / release actions
+- Docker lifecycle start/stop/remove (unless the task explicitly requests lifecycle validation)
+
+If a task **explicitly** asks for template lifecycle validation, run:
+
+```bash
+scripts/check-template-lifecycle.sh <module_id>
+```
+
+instead of asking the user to copy lifecycle commands.
+
+Preferred PR check from repo root:
+
+```bash
+scripts/check-public-pr.sh
+```
+
+See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
+
+## 5b. IOE task skills
+
+Tracked task skills: [docs/CURSOR_TASK_SKILLS.md](docs/CURSOR_TASK_SKILLS.md).
+
+When the user says **“use IOE template skill”**, **“use Bugbot fix skill”**, **“use PR review skill”**, or **“update handoff”**, follow the matching section in that document.
+
+**Local Cursor IDE only (do not commit):** if `.cursor/rules/` or `.cursor/skills/` exist on disk, they may be used as optional local helpers. The public repo does **not** track `.cursor/` (see `.gitignore`).
+
+## 6. Handoff / progress
+
+**Session start (required order)**
+
+1. Read this `.cursorrules` file.
+2. Read [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
+3. Read [docs/CURSOR_TASK_SKILLS.md](docs/CURSOR_TASK_SKILLS.md).
+4. Read `LOCAL_SESSION_HANDOFF.md` if it exists.
+5. Run `scripts/update-local-handoff.sh` after reading context (refreshes local handoff; never commits).
+6. Read `README.md` and task-specific docs only as needed.
+7. Do **not** assume private-repo strategy is allowed here.
+
+**Before stopping, switching branch/repo, or when context/progress approaches ~80–85%**
+
+Run `scripts/update-local-handoff.sh` again, then edit the handoff notes (tests, Bugbot, risks, next step) if needed.
+
+`LOCAL_SESSION_HANDOFF.md` is **local-only**, **gitignored**, and must **never** be staged or committed.
+
+## 7. Final report format (every task)
+
+End with:
+
+- **Branch**
+- **Latest commit**
+- **Files changed**
+- **Tests/checks run**
+- **Results**
+- **Remaining risks**
+- **PR readiness**
+- **Low items deferred**
+- **Handoff updated:** yes/no
+
+Do not push unless the user asks.
+
+## 8. Cursor UI limitation
+
+Some terminal approvals are controlled by Cursor settings. If automatic execution is blocked, enable safe Agent/Terminal auto-run or command allowlist settings in Cursor. Keep destructive actions, root/sudo, Docker lifecycle, force-push, branch deletion, and merge actions approval-gated.
