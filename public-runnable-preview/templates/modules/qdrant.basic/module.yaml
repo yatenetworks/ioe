@@ -1,0 +1,45 @@
+module_id: qdrant.basic
+manifest_schema_version: v0
+template_version: 1
+name: Qdrant Basic Module
+description: Local testing preview template for Qdrant vector search using the official Docker image.
+source:
+  type: local
+  url: templates/modules/qdrant.basic
+license: MIT
+capabilities:
+  - capability.app.qdrant
+  - capability.vector.storage
+resource_profile:
+  cpu_min: 1
+  ram_mb_min: 512
+  disk_mb_min: 1024
+  gpu_required: false
+lifecycle_mode: persistent
+healthcheck:
+  type: http
+  path: /readyz
+  port: 18083
+security_policy:
+  risk_class: digital_only
+  needs_root: false
+  needs_docker_socket: false
+  public_exposure: false
+recovery_policy:
+  restart: true
+  recreate: true
+  restore_from_backup: false
+  reinstall: true
+  max_attempts: 3
+  backoff_seconds: 10
+cleanup_policy:
+  destroy_after_complete: false
+  standby_after_complete: true
+  cleanup_temp_files: true
+extensions:
+  ioe.local:
+    compose_file: docker-compose.yaml
+    healthcheck_file: healthcheck.sh
+    backup_file: backup.sh
+    restore_file: restore.sh
+    template_status: draft

@@ -41,6 +41,7 @@ Lifecycle:
 - hello.basic (port 18080)
 - static.web.basic (port 18081)
 - http.echo.basic (port 18082)
+- qdrant.basic (port 18083, draft / testing)
 
 ## Install entrypoints (testing only)
 
