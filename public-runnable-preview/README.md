@@ -45,6 +45,7 @@ Lifecycle:
 - ollama.basic (port 18084, draft / testing)
 - open-webui.basic (port 18085, draft / testing)
 - flowise.basic (port 18086, draft / testing)
+- litellm.basic (port 18087, draft / testing)
 
 ## Install entrypoints (testing only)
 

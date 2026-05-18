@@ -1,0 +1,12 @@
+# Example LiteLLM proxy config (testing preview only).
+# Copy to config.yaml in the installed module directory only if you customize models.
+# Provider API keys are read from environment variables — never put real keys in this file.
+
+model_list:
+  - model_name: example-openai
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_key: os.environ/OPENAI_API_KEY
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

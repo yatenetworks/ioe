@@ -110,6 +110,7 @@ qdrant.basic
 ollama.basic
 open-webui.basic
 flowise.basic
+litellm.basic
 ```
 
 ### `template_version`
