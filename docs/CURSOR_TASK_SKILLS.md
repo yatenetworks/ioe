@@ -131,6 +131,36 @@ Edit the generated file for open PR and notes when known.
 
 ---
 
+## IOE stalled-task recovery (workflow)
+
+**Use when:** a command times out, Cursor was stopped mid-task, or progress is unclear.
+
+### Rules
+
+1. **Stalled command** — decide if the operation is an expected long runner (docker pull, image extract, npm/pip install, first model/runtime start, lifecycle healthcheck, network download).
+2. **Before stop/retry** — inspect `git status --short`, processes (if available), `docker ps` / compose when Docker is involved, recent logs, and template healthcheck/logs.
+3. **No scratch restart** — do not redo the whole task unless inspection shows it is safe.
+4. **After manual stop** — read `.cursorrules`, `docs/CURSOR_WORKFLOW.md`, this file, `LOCAL_SESSION_HANDOFF.md`; run `scripts/update-local-handoff.sh`; `git status --short`; summarize; continue from current git state.
+5. **Interrupted lifecycle** — rely on `scripts/check-template-lifecycle.sh` cleanup; if uncertain, `ioectl module stop` / `remove` best-effort; verify no leftover test containers.
+6. **Two failures** — stop looping, update handoff, short diagnostic report, recommend escalation or review.
+7. **Model escalation** — default Auto/Composer for routine work; escalate on Bugbot High, Medium after one focused fix, same test fails twice, installer/runtime/ioectl/remove/data deletion/Docker cleanup, or public/private boundary (see `.cursorrules` §8).
+
+### Checks (safe, run directly)
+
+```bash
+git status --short
+scripts/update-local-handoff.sh
+scripts/check-public-pr.sh
+```
+
+When Docker may be involved:
+
+```bash
+docker ps -a --format '{{.Names}}\t{{.Status}}' | grep -E '^ioe-' || true
+```
+
+---
+
 ## Trigger phrases
 
 | User says | Follow section |
@@ -139,6 +169,7 @@ Edit the generated file for open PR and notes when known.
 | use Bugbot fix skill | IOE Bugbot fix skill |
 | use PR review skill | IOE PR review skill |
 | update handoff | IOE handoff skill |
+| stalled recovery / continue task | IOE stalled-task recovery |
 
 ---
 

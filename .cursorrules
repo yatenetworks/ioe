@@ -107,7 +107,7 @@ See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
 
 Tracked task skills: [docs/CURSOR_TASK_SKILLS.md](docs/CURSOR_TASK_SKILLS.md).
 
-When the user says **“use IOE template skill”**, **“use Bugbot fix skill”**, **“use PR review skill”**, or **“update handoff”**, follow the matching section in that document.
+When the user says **“use IOE template skill”**, **“use Bugbot fix skill”**, **“use PR review skill”**, **“update handoff”**, or asks to **continue after a stall/stop**, follow the matching section in that document.
 
 **Local Cursor IDE only (do not commit):** if `.cursor/rules/` or `.cursor/skills/` exist on disk, they may be used as optional local helpers. The public repo does **not** track `.cursor/` (see `.gitignore`).
 
@@ -145,6 +145,74 @@ End with:
 
 Do not push unless the user asks.
 
-## 8. Cursor UI limitation
+## 8. Model selection (IOE)
+
+**Default:** Auto / Composer 2 for routine implementation, docs, templates, local checks, and small Bugbot fixes.
+
+**Escalate** to a stronger model (e.g. GPT-5.5, Sonnet 4.6, Codex 5.3) when:
+
+- the task touches installer scripts, root-running code, shell safety, or remote downloads
+- the task touches ioectl core, remove behavior, data deletion, Docker cleanup, or lifecycle state
+- Bugbot reports **High** severity
+- Bugbot **Medium** remains unresolved after **one** focused fix attempt
+- the **same test fails twice**
+- public/private boundary or project positioning is involved
+- the task requires **architecture decisions** rather than routine implementation
+
+**Stop rule:** Do not keep looping on Auto if **two focused attempts** fail. Stop, summarize current state, run `scripts/update-local-handoff.sh`, and ask the user for model escalation or review.
+
+## 9. Stalled command recovery
+
+When a command appears **stuck** or **times out**, do **not** restart the whole task from scratch until you have inspected current state.
+
+**1. Long-running operations (may be expected)**
+
+Check whether the command is a known slow step before aborting:
+
+- `docker pull` / image extraction
+- `npm install` / `pip install`
+- model or runtime **first start**
+- template lifecycle **healthcheck** (retries)
+- network download
+
+**2. Inspect before stop or retry**
+
+- `git status --short`
+- running process summary (if available)
+- `docker ps` / compose state when Docker is involved
+- recent command output or logs
+- template `ioectl module logs` / healthcheck output when relevant
+
+**3. Continue from current state**
+
+Do **not** discard work and restart from scratch unless inspection shows it is safe (clean tree, no partial install, no orphan containers).
+
+**4. After the user stops Cursor manually**
+
+Next session start:
+
+1. Read `.cursorrules`, `docs/CURSOR_WORKFLOW.md`, `docs/CURSOR_TASK_SKILLS.md`
+2. Read `LOCAL_SESSION_HANDOFF.md` if present
+3. Run `scripts/update-local-handoff.sh`
+4. Run `git status --short`
+5. Summarize current state, then **continue from current git state**
+
+**5. Interrupted lifecycle test**
+
+`scripts/check-template-lifecycle.sh` runs best-effort cleanup on failure after `start`. If cleanup is uncertain:
+
+```bash
+cd public-runnable-preview
+./ioectl module stop <module_id> || true
+./ioectl module remove <module_id> || true
+```
+
+Verify no leftover `ioe-*` test containers before retry.
+
+**6. Same command or test fails twice**
+
+Stop looping. Run `scripts/update-local-handoff.sh`, write a short diagnostic report, and recommend model escalation or human review (see §8).
+
+## 10. Cursor UI limitation
 
 Some terminal approvals are controlled by Cursor settings. If automatic execution is blocked, enable safe Agent/Terminal auto-run or command allowlist settings in Cursor. Keep destructive actions, root/sudo, Docker lifecycle, force-push, branch deletion, and merge actions approval-gated.

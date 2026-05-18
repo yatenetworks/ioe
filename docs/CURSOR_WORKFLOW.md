@@ -27,6 +27,74 @@ This document describes how IOE uses Cursor, ChatGPT, and human review together 
 - **`LOCAL_SESSION_HANDOFF.md`** is local-only and **must not be committed** (gitignored).
 - Optional local copies under `.cursor/rules/` or `.cursor/skills/` may help on your machine; they are not part of the public repository.
 
+## Model selection (IOE)
+
+| Default (Auto / Composer 2) | Escalate (stronger model) |
+|-----------------------------|-----------------------------|
+| Routine implementation, docs, templates | Installer, root/sudo, shell safety, remote downloads |
+| Local checks, small Bugbot fixes | ioectl core, remove/data deletion, Docker cleanup, lifecycle state |
+| | Bugbot **High**; **Medium** after one focused fix attempt |
+| | Same test fails **twice** |
+| | Public/private boundary or positioning |
+| | Architecture decisions (not routine implementation) |
+
+If **two focused attempts** fail on Auto, stop looping: summarize state, run `scripts/update-local-handoff.sh`, and ask for escalation or human review.
+
+See also `.cursorrules` §8.
+
+## Stalled command recovery
+
+When Cursor appears stuck during a long task, **inspect and continue** — do not restart from scratch unless state inspection shows it is safe.
+
+### Expected slow operations
+
+These may look stuck but are often normal:
+
+- Docker image pull / extraction
+- `npm` / `pip` install
+- First start of a model or app runtime
+- Template lifecycle healthcheck (including retries)
+- Network downloads
+
+### Inspect before stop or retry
+
+| Check | Command / source |
+|-------|------------------|
+| Git state | `git status --short` |
+| Processes | running process summary if available |
+| Docker | `docker ps`, compose state when relevant |
+| Logs | recent terminal output; `ioectl module logs <id>` for templates |
+
+### Do not restart from scratch
+
+Continue from the current branch, commits, and partial work unless inspection shows a clean reset is safe.
+
+### Resume after manual stop
+
+1. Read `.cursorrules`, this file, `docs/CURSOR_TASK_SKILLS.md`
+2. Read `LOCAL_SESSION_HANDOFF.md` if present
+3. Run `scripts/update-local-handoff.sh`
+4. Run `git status --short`
+5. Summarize state and continue from current git state
+
+### Interrupted lifecycle tests
+
+- `scripts/check-template-lifecycle.sh` cleans up on failure after `start` (see script `NEED_CLEANUP` trap).
+- If unsure, best-effort from `public-runnable-preview`:
+
+```bash
+./ioectl module stop <module_id> || true
+./ioectl module remove <module_id> || true
+```
+
+Confirm no leftover `ioe-*` test containers before retry.
+
+### Two failures on the same command/test
+
+Stop looping → update handoff → short diagnostic report → recommend model escalation or review (see [Model selection](#model-selection-ioe)).
+
+See `.cursorrules` §9 and [CURSOR_TASK_SKILLS.md](CURSOR_TASK_SKILLS.md) (stalled recovery).
+
 ## Auto-run and Cursor UI
 
 Auto-run depends partly on **Cursor UI settings** (Agent/Terminal auto-run, command allowlist).
