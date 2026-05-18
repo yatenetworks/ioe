@@ -1,0 +1,20 @@
+services:
+  open-webui-basic:
+    image: ghcr.io/open-webui/open-webui:v0.6.15
+    container_name: ioe-open-webui-basic
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18085:8080"
+    environment:
+      OLLAMA_BASE_URL: http://host.docker.internal:18084
+      WEBUI_AUTH: "false"
+      OFFLINE_MODE: "true"
+      RAG_EMBEDDING_MODEL_AUTO_UPDATE: "false"
+      RAG_RERANKING_MODEL_AUTO_UPDATE: "false"
+      WHISPER_MODEL_AUTO_UPDATE: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/backend/data
+    labels:
+      ioe.module_id: "open-webui.basic"
