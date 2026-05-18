@@ -165,6 +165,19 @@ End with:
 
 Some terminal approvals are controlled by Cursor settings. If automatic execution is blocked by Cursor UI settings, enable safe Agent/Terminal auto-run or command allowlist settings. Keep destructive, root, Docker lifecycle, force-push, branch deletion, and merge actions approval-gated.
 
+## IOE task skills
+
+Project skills live under `.cursor/skills/`. Cursor rules under `.cursor/rules/` reinforce boundaries and handoff. Use a skill when the user names it or when the task clearly matches.
+
+| Skill file | When to use |
+|------------|-------------|
+| [ioe-template-skill.md](../.cursor/skills/ioe-template-skill.md) | Add or update **one** AI app template (draft/testing, local ports, checks, lifecycle only if requested) |
+| [ioe-bugbot-fix-skill.md](../.cursor/skills/ioe-bugbot-fix-skill.md) | Fix **Bugbot** Medium/High (minimal diff); record deferred Low items |
+| [ioe-pr-review-skill.md](../.cursor/skills/ioe-pr-review-skill.md) | **Pre-merge review** — output **OK to merge** or **Do not merge** for ChatGPT |
+| [ioe-handoff-skill.md](../.cursor/skills/ioe-handoff-skill.md) | Refresh **LOCAL_SESSION_HANDOFF.md** via `scripts/update-local-handoff.sh` |
+
+Trigger phrases in `.cursorrules`: “use IOE template skill”, “use Bugbot fix skill”, “use PR review skill”, “update handoff”.
+
 ## Related docs
 
 - [AI app template contribution guide](AI_APP_TEMPLATE_CONTRIBUTION_GUIDE.md)

@@ -1,0 +1,17 @@
+---
+description: IOE public repo boundaries, merge policy, and PR checks
+alwaysApply: true
+---
+
+# IOE public boundary
+
+- This **public** repository is **low-key** and **practical** (IOE AI Env Installer).
+- Do **not** include internal long-term strategy, production-ready hype, or grand platform language.
+- Do **not** modify **installer** or **runtime** unless the task **explicitly** asks.
+- **Bugbot Medium/High** blocks merge until fixed or explicitly escalated to the user.
+- **Bugbot Low** may be deferred only when **recorded** (PR notes, handoff, or deferred list).
+- Before the final report on substantive changes, run from repo root:
+
+```bash
+scripts/check-public-pr.sh
+```

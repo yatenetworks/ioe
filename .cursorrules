@@ -103,6 +103,21 @@ scripts/check-public-pr.sh
 
 See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
 
+## 5b. IOE task skills
+
+Project skills: `.cursor/skills/` (see **IOE task skills** in [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md)).
+
+When the user says **“use IOE template skill”**, **“use Bugbot fix skill”**, **“use PR review skill”**, or **“update handoff”**, follow the matching skill document if present:
+
+| Phrase | Skill file |
+|--------|------------|
+| use IOE template skill | `.cursor/skills/ioe-template-skill.md` |
+| use Bugbot fix skill | `.cursor/skills/ioe-bugbot-fix-skill.md` |
+| use PR review skill | `.cursor/skills/ioe-pr-review-skill.md` |
+| update handoff | `.cursor/skills/ioe-handoff-skill.md` |
+
+Cursor rules in `.cursor/rules/` (`ioe-public-boundary.mdc`, `ioe-handoff.mdc`) apply in addition to this file.
+
 ## 6. Handoff / progress
 
 **Session start (required order)**
