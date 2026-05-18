@@ -1,0 +1,11 @@
+services:
+  ollama-basic:
+    image: ollama/ollama:0.6.6
+    container_name: ioe-ollama-basic
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18084:11434"
+    volumes:
+      - ./data:/root/.ollama
+    labels:
+      ioe.module_id: "ollama.basic"
