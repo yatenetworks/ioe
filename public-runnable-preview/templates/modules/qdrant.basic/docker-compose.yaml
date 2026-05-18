@@ -1,0 +1,11 @@
+services:
+  qdrant-basic:
+    image: qdrant/qdrant:v1.13.5
+    container_name: ioe-qdrant-basic
+    restart: unless-stopped
+    ports:
+      - "18083:6333"
+    volumes:
+      - ./storage:/qdrant/storage
+    labels:
+      ioe.module_id: "qdrant.basic"

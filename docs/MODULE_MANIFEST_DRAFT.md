@@ -106,6 +106,7 @@ Examples:
 hello.basic
 static.web.basic
 http.echo.basic
+qdrant.basic
 ```
 
 ### `template_version`
