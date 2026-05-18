@@ -34,17 +34,16 @@ elif ! python3 -c "import jsonschema" 2>/dev/null; then
   exit 1
 fi
 
-cleanup_on_exit() {
+cleanup() {
   local exit_code=$?
-  if [[ "${NEED_CLEANUP}" -eq 1 ]]; then
-    echo ">> cleanup: best-effort stop/remove for ${MODULE_ID} (preserving exit ${exit_code})" >&2
+  if [[ "${NEED_CLEANUP}" == "1" ]]; then
+    echo "Cleaning up lifecycle test resources for ${MODULE_ID}" >&2
     ./ioectl module stop "${MODULE_ID}" >/dev/null 2>&1 || true
     ./ioectl module remove "${MODULE_ID}" >/dev/null 2>&1 || true
-    echo "Cleanup attempted for ${MODULE_ID}" >&2
   fi
   exit "${exit_code}"
 }
-trap cleanup_on_exit EXIT
+trap cleanup EXIT
 
 run_step() {
   local label="$1"
@@ -72,6 +71,5 @@ run_step "stop" ./ioectl module stop "${MODULE_ID}"
 run_step "remove" ./ioectl module remove "${MODULE_ID}"
 NEED_CLEANUP=0
 
-trap - EXIT
 echo
 echo "== RESULT: PASS (lifecycle completed for ${MODULE_ID}) =="
