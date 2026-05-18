@@ -17,6 +17,43 @@ This document describes how IOE uses Cursor, ChatGPT, and human review together 
 - Do **not** publish internal long-term strategy, production-ready claims, or grand platform language.
 - Follow wording rules in `.cursorrules` and PR Compliance (same patterns as CI).
 
+## Auto-run routine checks
+
+Cursor should run routine **safe** checks directly when command execution is available.
+
+**Do not** ask the user to manually run routine checks such as:
+
+- `git status --short`
+- `git diff --stat`
+- `git log --oneline`
+- `bash -n` checks
+- `python3 -m py_compile`
+- `scripts/check-public-pr.sh`
+- grep-based public-safe / secret checks
+- `ioectl validate module` checks
+
+**Ask for confirmation** only for:
+
+- root-only commands
+- `sudo`
+- destructive commands
+- Docker lifecycle start/stop/remove (default)
+- branch deletion
+- force push
+- `reset --hard`
+- `clean -fdx`
+- release/tag actions
+- merge actions
+- package installs or remote script downloads (`curl | bash`, etc.)
+
+**Template lifecycle (Docker):** opt-in by default. If the task **explicitly** asks for lifecycle validation, Cursor should run:
+
+```bash
+scripts/check-template-lifecycle.sh <module_id>
+```
+
+instead of pasting install/start/status/logs/stop/remove commands for the user to run.
+
 ## Checks before opening or updating a PR
 
 From the repository root (no root, no Docker):
@@ -49,7 +86,7 @@ Example:
 scripts/check-template-lifecycle.sh qdrant.basic
 ```
 
-This uses Docker and is **not** part of the default PR script. Run on a test machine when appropriate.
+This uses Docker and is **not** part of the default PR script.
 
 ## Bugbot and merge policy
 
@@ -59,16 +96,31 @@ This uses Docker and is **not** part of the default PR script. Run on a test mac
 ## Session handoff (local only)
 
 - File: `LOCAL_SESSION_HANDOFF.md` at the repo root
-- **Gitignored** — never commit
-- Cursor updates it near session end or before switching branches (~80–85% context)
-- Include: branch, latest commit, open PRs, test results, open Bugbot items, next safe step
+- **Gitignored** — never stage or commit
 
-## Session start (Cursor)
+### Session start (required)
 
 1. Read `.cursorrules`
-2. Read `LOCAL_SESSION_HANDOFF.md` if present
-3. Read `README.md` and task-specific docs as needed
-4. Do not apply private-repo strategy wording in this repository
+2. Read this file (`docs/CURSOR_WORKFLOW.md`)
+3. Read `LOCAL_SESSION_HANDOFF.md` if present
+4. Read `README.md` and task-specific docs as needed
+5. Do not apply private-repo strategy wording here
+
+### Before stop / branch or repo switch / ~80–85% context
+
+Update `LOCAL_SESSION_HANDOFF.md` with:
+
+| Field | Content |
+|-------|---------|
+| repo | e.g. `yatenetworks/ioe` |
+| branch | current branch name |
+| latest commit | short SHA + subject |
+| open PR | URL or title if known |
+| files changed | summary of this session |
+| tests/checks run | commands and pass/fail |
+| Bugbot/CI status | open items |
+| unresolved risks | blockers |
+| next safe step | one concrete action |
 
 ## Final report (every Cursor task)
 
@@ -80,8 +132,13 @@ End with:
 - Tests/checks run
 - Results
 - Remaining risks
-- Whether PR is ready
-- Whether any Low items should be deferred
+- PR readiness
+- Low items deferred
+- Handoff updated: yes/no
+
+## Cursor UI limitation
+
+Some terminal approvals are controlled by Cursor settings. If automatic execution is blocked by Cursor UI settings, enable safe Agent/Terminal auto-run or command allowlist settings. Keep destructive, root, Docker lifecycle, force-push, branch deletion, and merge actions approval-gated.
 
 ## Related docs
 

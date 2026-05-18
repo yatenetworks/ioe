@@ -57,45 +57,76 @@ Safer replacements when needed:
 - Prefer lifecycle: validate → install → start → status → logs → stop → remove.
 - LLM-generated templates are draft/unverified until tested and reviewed.
 
-## 5. Required checks after changes
+## 5. Auto-run routine checks
 
-From the repository root, prefer the consolidated script (matches PR Compliance wording rules):
+When command execution is available, **run routine safe checks directly**. Do not ask the user to manually copy routine commands.
 
-```bash
-scripts/check-public-pr.sh
-```
+Run without asking (examples):
 
-Optional Docker lifecycle test for one template (manual, opt-in):
+- `git status --short`
+- `git diff --stat`
+- `git log --oneline`
+- `bash -n` on changed shell scripts
+- `python3 -m py_compile` on changed preview Python tools
+- `scripts/check-public-pr.sh`
+- public-safe wording / secret grep checks (as in that script)
+- `ioectl validate module` for changed templates
+
+Ask for confirmation only before:
+
+- root-only commands
+- `sudo`
+- destructive commands
+- Docker lifecycle start/stop/remove (unless the task explicitly requests lifecycle validation)
+- branch deletion
+- force push
+- `reset --hard`
+- `clean -fdx`
+- release/tag actions
+- merge actions
+- commands that install packages or download remote scripts
+
+If a task **explicitly** asks for template lifecycle validation, run:
 
 ```bash
 scripts/check-template-lifecycle.sh <module_id>
 ```
 
+instead of asking the user to copy lifecycle commands.
+
+Preferred PR check from repo root:
+
+```bash
+scripts/check-public-pr.sh
+```
+
 See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
 
-Also report `git status --short` and `git diff --stat`.
+## 6. Handoff / progress
 
-## 6. Handoff behavior
-
-**Session start**
+**Session start (required order)**
 
 1. Read this `.cursorrules` file.
-2. Read `LOCAL_SESSION_HANDOFF.md` if it exists (local only; never commit).
-3. Read `README.md` and relevant docs only as needed.
-4. Do **not** assume private-repo strategy is allowed here.
+2. Read [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
+3. Read `LOCAL_SESSION_HANDOFF.md` if it exists.
+4. Read `README.md` and task-specific docs only as needed.
+5. Do **not** assume private-repo strategy is allowed here.
 
-**Before ending a session, switching repo/branch, or near ~80–85% context**
+**Before stopping, switching branch/repo, or when context/progress approaches ~80–85%**
 
 Update `LOCAL_SESSION_HANDOFF.md` with:
 
-- current branch
+- repo
+- branch
 - latest commit
-- open PRs
-- tests run and results
-- unresolved Bugbot items
+- open PR
+- files changed
+- tests/checks run
+- Bugbot/CI status
+- unresolved risks
 - next safe step
 
-`LOCAL_SESSION_HANDOFF.md` is **gitignored** and must **never** be committed.
+`LOCAL_SESSION_HANDOFF.md` is **local-only**, **gitignored**, and must **never** be staged or committed.
 
 ## 7. Final report format (every task)
 
@@ -107,7 +138,12 @@ End with:
 - **Tests/checks run**
 - **Results**
 - **Remaining risks**
-- **Whether PR is ready**
-- **Whether any Low items should be deferred**
+- **PR readiness**
+- **Low items deferred**
+- **Handoff updated:** yes/no
 
 Do not push unless the user asks.
+
+## 8. Cursor UI limitation
+
+Some terminal approvals are controlled by Cursor settings. If automatic execution is blocked, enable safe Agent/Terminal auto-run or command allowlist settings in Cursor. Keep destructive actions, root/sudo, Docker lifecycle, force-push, branch deletion, and merge actions approval-gated.
