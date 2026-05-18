@@ -63,8 +63,8 @@ echo
 
 run_step "validate" ./ioectl validate module "${MANIFEST}"
 run_step "install" ./ioectl module install "${MANIFEST}"
-run_step "start" ./ioectl module start "${MODULE_ID}"
 NEED_CLEANUP=1
+run_step "start" ./ioectl module start "${MODULE_ID}"
 run_step "status" ./ioectl module status "${MODULE_ID}"
 run_step "logs" ./ioectl module logs "${MODULE_ID}" --tail 30
 run_step "stop" ./ioectl module stop "${MODULE_ID}"

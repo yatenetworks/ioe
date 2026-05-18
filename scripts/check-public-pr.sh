@@ -23,6 +23,7 @@ shell_files=(
   public-runnable-preview/scripts/test-ioectl-lifecycle.sh
   scripts/check-public-pr.sh
   scripts/check-template-lifecycle.sh
+  scripts/update-local-handoff.sh
 )
 while IFS= read -r -d '' f; do
   shell_files+=("$f")
