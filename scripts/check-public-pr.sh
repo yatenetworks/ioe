@@ -58,26 +58,25 @@ preview="${ROOT}/public-runnable-preview"
 if [[ ! -x "${preview}/ioectl" ]]; then
   fail "missing executable ${preview}/ioectl"
 else
-  (
-    cd "${preview}"
-    if [[ -d .venv ]]; then
-      # shellcheck source=/dev/null
-      source .venv/bin/activate
-    fi
-    shopt -s nullglob
-    modules=(templates/modules/*/module.yaml)
-    if [[ ${#modules[@]} -eq 0 ]]; then
-      fail "no templates/modules/*/module.yaml found"
-    else
-      for yaml in "${modules[@]}"; do
-        if ./ioectl validate module "${yaml}"; then
-          pass "validate ${yaml}"
-        else
-          fail "validate ${yaml}"
-        fi
-      done
-    fi
-  )
+  pushd "${preview}" > /dev/null
+  if [[ -d .venv ]]; then
+    # shellcheck source=/dev/null
+    source .venv/bin/activate
+  fi
+  shopt -s nullglob
+  modules=(templates/modules/*/module.yaml)
+  if [[ ${#modules[@]} -eq 0 ]]; then
+    fail "no templates/modules/*/module.yaml found"
+  else
+    for yaml in "${modules[@]}"; do
+      if ./ioectl validate module "${yaml}"; then
+        pass "validate ${yaml}"
+      else
+        fail "validate ${yaml}"
+      fi
+    done
+  fi
+  popd > /dev/null
 fi
 echo
 
