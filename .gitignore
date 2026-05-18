@@ -31,6 +31,7 @@ out/
 .idea/
 .vscode/
 .DS_Store
+# Cursor IDE (local only; tracked workflow: .cursorrules + docs/CURSOR_*.md)
 .cursor/
 
 # Review / packaging temp

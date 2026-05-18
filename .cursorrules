@@ -105,18 +105,11 @@ See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
 
 ## 5b. IOE task skills
 
-Project skills: `.cursor/skills/` (see **IOE task skills** in [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md)).
+Tracked task skills: [docs/CURSOR_TASK_SKILLS.md](docs/CURSOR_TASK_SKILLS.md).
 
-When the user says **“use IOE template skill”**, **“use Bugbot fix skill”**, **“use PR review skill”**, or **“update handoff”**, follow the matching skill document if present:
+When the user says **“use IOE template skill”**, **“use Bugbot fix skill”**, **“use PR review skill”**, or **“update handoff”**, follow the matching section in that document.
 
-| Phrase | Skill file |
-|--------|------------|
-| use IOE template skill | `.cursor/skills/ioe-template-skill.md` |
-| use Bugbot fix skill | `.cursor/skills/ioe-bugbot-fix-skill.md` |
-| use PR review skill | `.cursor/skills/ioe-pr-review-skill.md` |
-| update handoff | `.cursor/skills/ioe-handoff-skill.md` |
-
-Cursor rules in `.cursor/rules/` (`ioe-public-boundary.mdc`, `ioe-handoff.mdc`) apply in addition to this file.
+**Local Cursor IDE only (do not commit):** if `.cursor/rules/` or `.cursor/skills/` exist on disk, they may be used as optional local helpers. The public repo does **not** track `.cursor/` (see `.gitignore`).
 
 ## 6. Handoff / progress
 
@@ -124,10 +117,11 @@ Cursor rules in `.cursor/rules/` (`ioe-public-boundary.mdc`, `ioe-handoff.mdc`) 
 
 1. Read this `.cursorrules` file.
 2. Read [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
-3. Read `LOCAL_SESSION_HANDOFF.md` if it exists.
-4. Run `scripts/update-local-handoff.sh` after reading context (refreshes local handoff; never commits).
-5. Read `README.md` and task-specific docs only as needed.
-6. Do **not** assume private-repo strategy is allowed here.
+3. Read [docs/CURSOR_TASK_SKILLS.md](docs/CURSOR_TASK_SKILLS.md).
+4. Read `LOCAL_SESSION_HANDOFF.md` if it exists.
+5. Run `scripts/update-local-handoff.sh` after reading context (refreshes local handoff; never commits).
+6. Read `README.md` and task-specific docs only as needed.
+7. Do **not** assume private-repo strategy is allowed here.
 
 **Before stopping, switching branch/repo, or when context/progress approaches ~80–85%**
 

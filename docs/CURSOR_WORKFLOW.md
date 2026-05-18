@@ -17,6 +17,16 @@ This document describes how IOE uses Cursor, ChatGPT, and human review together 
 - Do **not** publish internal long-term strategy, production-ready claims, or grand platform language.
 - Follow wording rules in `.cursorrules` and PR Compliance (same patterns as CI).
 
+## Tracked vs local Cursor files
+
+- **`.cursor/`** is local IDE configuration and **must not be committed** in this public repo (see `.gitignore`).
+- **Tracked workflow guidance** lives in:
+  - `.cursorrules`
+  - `docs/CURSOR_WORKFLOW.md` (this file)
+  - `docs/CURSOR_TASK_SKILLS.md`
+- **`LOCAL_SESSION_HANDOFF.md`** is local-only and **must not be committed** (gitignored).
+- Optional local copies under `.cursor/rules/` or `.cursor/skills/` may help on your machine; they are not part of the public repository.
+
 ## Auto-run and Cursor UI
 
 Auto-run depends partly on **Cursor UI settings** (Agent/Terminal auto-run, command allowlist).
@@ -126,10 +136,11 @@ Cursor should run this at task start (after reading rules/docs/handoff) and agai
 
 1. Read `.cursorrules`
 2. Read this file (`docs/CURSOR_WORKFLOW.md`)
-3. Read `LOCAL_SESSION_HANDOFF.md` if present
-4. Run `scripts/update-local-handoff.sh`
-5. Read `README.md` and task-specific docs as needed
-6. Do not apply private-repo strategy wording here
+3. Read `docs/CURSOR_TASK_SKILLS.md`
+4. Read `LOCAL_SESSION_HANDOFF.md` if present
+5. Run `scripts/update-local-handoff.sh`
+6. Read `README.md` and task-specific docs as needed
+7. Do not apply private-repo strategy wording here
 
 ### Before stop / branch or repo switch / ~80–85% context
 
@@ -167,14 +178,14 @@ Some terminal approvals are controlled by Cursor settings. If automatic executio
 
 ## IOE task skills
 
-Project skills live under `.cursor/skills/`. Cursor rules under `.cursor/rules/` reinforce boundaries and handoff. Use a skill when the user names it or when the task clearly matches.
+Tracked in [CURSOR_TASK_SKILLS.md](CURSOR_TASK_SKILLS.md). Use when the user names a skill or the task clearly matches:
 
-| Skill file | When to use |
-|------------|-------------|
-| [ioe-template-skill.md](../.cursor/skills/ioe-template-skill.md) | Add or update **one** AI app template (draft/testing, local ports, checks, lifecycle only if requested) |
-| [ioe-bugbot-fix-skill.md](../.cursor/skills/ioe-bugbot-fix-skill.md) | Fix **Bugbot** Medium/High (minimal diff); record deferred Low items |
-| [ioe-pr-review-skill.md](../.cursor/skills/ioe-pr-review-skill.md) | **Pre-merge review** — output **OK to merge** or **Do not merge** for ChatGPT |
-| [ioe-handoff-skill.md](../.cursor/skills/ioe-handoff-skill.md) | Refresh **LOCAL_SESSION_HANDOFF.md** via `scripts/update-local-handoff.sh` |
+| Skill | When to use |
+|-------|-------------|
+| IOE template skill | Add or update **one** AI app template (draft/testing, local ports, checks, lifecycle only if requested) |
+| IOE Bugbot fix skill | Fix **Bugbot** Medium/High (minimal diff); record deferred Low items |
+| IOE PR review skill | **Pre-merge review** — output **OK to merge** or **Do not merge** |
+| IOE handoff skill | Refresh **LOCAL_SESSION_HANDOFF.md** via `scripts/update-local-handoff.sh` |
 
 Trigger phrases in `.cursorrules`: “use IOE template skill”, “use Bugbot fix skill”, “use PR review skill”, “update handoff”.
 
