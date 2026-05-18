@@ -107,6 +107,7 @@ hello.basic
 static.web.basic
 http.echo.basic
 qdrant.basic
+ollama.basic
 ```
 
 ### `template_version`
