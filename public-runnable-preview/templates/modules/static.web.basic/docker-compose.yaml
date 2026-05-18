@@ -4,6 +4,6 @@ services:
     container_name: ioe-static-web-basic
     restart: unless-stopped
     ports:
-      - "18081:80"
+      - "127.0.0.1:18081:80"
     labels:
       ioe.module_id: "static.web.basic"
