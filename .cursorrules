@@ -1,0 +1,113 @@
+# IOE public repository (yatenetworks/ioe) — Cursor rules
+
+## Role split
+
+- **Cursor**: execute, edit files, run tests, commit, push, fix routine Bugbot findings.
+- **ChatGPT**: roadmap, boundaries, risk calls, key PR review, merge recommendation.
+- **User**: final confirmation and merge click.
+
+## 1. Public positioning
+
+- Project name: **IOE AI Env Installer**
+- Positioning: a lightweight open-source tool for setting up **AI application environments** on clean Linux servers.
+- Keep wording low-key and practical.
+- Do not describe internal long-term strategy in this repository.
+- Do not advertise **production-ready** status.
+- Prefer: **local runnable preview**, **testing preview**, **AI application environment templates**, **ioectl lifecycle**.
+
+## 2. Hard public wording restrictions
+
+Never add public wording related to:
+
+- node economy
+- settlement
+- federation
+- native protocol
+- machine-to-machine coordination
+- next-generation internet
+- global AI network
+- cellular network strategy
+- MEC/cellular long-term strategy
+- identity/governance strategy
+- marketplace as a grand platform claim
+- production-ready claims
+
+Safer replacements when needed:
+
+- marketplace → template catalog / template list / template collection
+- scheduler → lifecycle automation / runner
+- next-generation → future / later
+- identity → authentication / account (only if strictly needed)
+
+## 3. Runtime / installer safety
+
+- Do not modify installer or runtime unless the task **explicitly** asks.
+- Do not expand shell scripts unnecessarily.
+- All root-running installer changes are **high-risk**.
+- Bugbot **Medium/High** must be fixed or escalated to the user.
+- Low duplication / dead code may be deferred only if explicitly recorded (e.g. v0.9 refactor).
+
+## 4. Template rules
+
+- New AI app templates start as **draft** / **testing**.
+- Do not mark templates **verified** without compatibility evidence.
+- Templates must preserve user data unless explicitly documented.
+- `remove` must be non-destructive by default.
+- No secrets, tokens, private keys, passwords, or hidden remote execution.
+- Prefer lifecycle: validate → install → start → status → logs → stop → remove.
+- LLM-generated templates are draft/unverified until tested and reviewed.
+
+## 5. Required checks after changes
+
+From the repository root, prefer the consolidated script (matches PR Compliance wording rules):
+
+```bash
+scripts/check-public-pr.sh
+```
+
+Optional Docker lifecycle test for one template (manual, opt-in):
+
+```bash
+scripts/check-template-lifecycle.sh <module_id>
+```
+
+See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
+
+Also report `git status --short` and `git diff --stat`.
+
+## 6. Handoff behavior
+
+**Session start**
+
+1. Read this `.cursorrules` file.
+2. Read `LOCAL_SESSION_HANDOFF.md` if it exists (local only; never commit).
+3. Read `README.md` and relevant docs only as needed.
+4. Do **not** assume private-repo strategy is allowed here.
+
+**Before ending a session, switching repo/branch, or near ~80–85% context**
+
+Update `LOCAL_SESSION_HANDOFF.md` with:
+
+- current branch
+- latest commit
+- open PRs
+- tests run and results
+- unresolved Bugbot items
+- next safe step
+
+`LOCAL_SESSION_HANDOFF.md` is **gitignored** and must **never** be committed.
+
+## 7. Final report format (every task)
+
+End with:
+
+- **Branch**
+- **Latest commit**
+- **Files changed**
+- **Tests/checks run**
+- **Results**
+- **Remaining risks**
+- **Whether PR is ready**
+- **Whether any Low items should be deferred**
+
+Do not push unless the user asks.

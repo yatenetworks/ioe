@@ -42,5 +42,8 @@ PACKAGE_CONTENTS.txt
 docs/private-backup/
 private/
 
+# Cursor local handoff (never commit)
+LOCAL_SESSION_HANDOFF.md
+
 # User data
 ioe-data/
