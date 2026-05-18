@@ -17,6 +17,15 @@ This document describes how IOE uses Cursor, ChatGPT, and human review together 
 - Do **not** publish internal long-term strategy, production-ready claims, or grand platform language.
 - Follow wording rules in `.cursorrules` and PR Compliance (same patterns as CI).
 
+## Auto-run and Cursor UI
+
+Auto-run depends partly on **Cursor UI settings** (Agent/Terminal auto-run, command allowlist).
+
+**Recommended behavior:**
+
+- Safe checks: run automatically (git status, `scripts/check-public-pr.sh`, `scripts/update-local-handoff.sh`, etc.).
+- Destructive, root, Docker lifecycle, merge, force-push, branch deletion, and tag/release actions: confirmation-gated.
+
 ## Auto-run routine checks
 
 Cursor should run routine **safe** checks directly when command execution is available.
@@ -29,6 +38,7 @@ Cursor should run routine **safe** checks directly when command execution is ava
 - `bash -n` checks
 - `python3 -m py_compile`
 - `scripts/check-public-pr.sh`
+- `scripts/update-local-handoff.sh`
 - grep-based public-safe / secret checks
 - `ioectl validate module` checks
 
@@ -86,7 +96,21 @@ Example:
 scripts/check-template-lifecycle.sh qdrant.basic
 ```
 
-This uses Docker and is **not** part of the default PR script.
+This uses Docker and is **not** part of the default PR script. Use it **only when lifecycle validation is explicitly requested**.
+
+On failure after `start`, the script runs best-effort `stop`/`remove` so containers are less likely to be left behind.
+
+## Local handoff script
+
+From repo root (no root, no network):
+
+```bash
+scripts/update-local-handoff.sh
+```
+
+Writes or overwrites `LOCAL_SESSION_HANDOFF.md` with branch, commit, status, and recent log. The file must stay **local** and must **never** be committed (gitignored).
+
+Cursor should run this at task start (after reading rules/docs/handoff) and again before stop, branch switch, or ~80–85% context.
 
 ## Bugbot and merge policy
 
@@ -103,12 +127,13 @@ This uses Docker and is **not** part of the default PR script.
 1. Read `.cursorrules`
 2. Read this file (`docs/CURSOR_WORKFLOW.md`)
 3. Read `LOCAL_SESSION_HANDOFF.md` if present
-4. Read `README.md` and task-specific docs as needed
-5. Do not apply private-repo strategy wording here
+4. Run `scripts/update-local-handoff.sh`
+5. Read `README.md` and task-specific docs as needed
+6. Do not apply private-repo strategy wording here
 
 ### Before stop / branch or repo switch / ~80–85% context
 
-Update `LOCAL_SESSION_HANDOFF.md` with:
+Run `scripts/update-local-handoff.sh`, then fill in notes below as needed:
 
 | Field | Content |
 |-------|---------|

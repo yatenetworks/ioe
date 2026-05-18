@@ -12,6 +12,7 @@ MODULE_ID="$1"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PREVIEW="${ROOT}/public-runnable-preview"
 MANIFEST="templates/modules/${MODULE_ID}/module.yaml"
+NEED_CLEANUP=0
 
 if [[ ! -f "${PREVIEW}/${MANIFEST}" ]]; then
   echo "ERROR: manifest not found: ${PREVIEW}/${MANIFEST}" >&2
@@ -33,6 +34,18 @@ elif ! python3 -c "import jsonschema" 2>/dev/null; then
   exit 1
 fi
 
+cleanup_on_exit() {
+  local exit_code=$?
+  if [[ "${NEED_CLEANUP}" -eq 1 ]]; then
+    echo ">> cleanup: best-effort stop/remove for ${MODULE_ID} (preserving exit ${exit_code})" >&2
+    ./ioectl module stop "${MODULE_ID}" >/dev/null 2>&1 || true
+    ./ioectl module remove "${MODULE_ID}" >/dev/null 2>&1 || true
+    echo "Cleanup attempted for ${MODULE_ID}" >&2
+  fi
+  exit "${exit_code}"
+}
+trap cleanup_on_exit EXIT
+
 run_step() {
   local label="$1"
   shift
@@ -52,10 +65,13 @@ echo
 run_step "validate" ./ioectl validate module "${MANIFEST}"
 run_step "install" ./ioectl module install "${MANIFEST}"
 run_step "start" ./ioectl module start "${MODULE_ID}"
+NEED_CLEANUP=1
 run_step "status" ./ioectl module status "${MODULE_ID}"
 run_step "logs" ./ioectl module logs "${MODULE_ID}" --tail 30
 run_step "stop" ./ioectl module stop "${MODULE_ID}"
 run_step "remove" ./ioectl module remove "${MODULE_ID}"
+NEED_CLEANUP=0
 
+trap - EXIT
 echo
 echo "== RESULT: PASS (lifecycle completed for ${MODULE_ID}) =="

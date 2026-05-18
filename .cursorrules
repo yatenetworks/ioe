@@ -69,22 +69,23 @@ Run without asking (examples):
 - `bash -n` on changed shell scripts
 - `python3 -m py_compile` on changed preview Python tools
 - `scripts/check-public-pr.sh`
+- `scripts/update-local-handoff.sh`
 - public-safe wording / secret grep checks (as in that script)
 - `ioectl validate module` for changed templates
 
 Ask for confirmation only before:
 
-- root-only commands
 - `sudo`
-- destructive commands
-- Docker lifecycle start/stop/remove (unless the task explicitly requests lifecycle validation)
-- branch deletion
+- root install / root-only commands
+- `curl | bash` and other remote script downloads
+- destructive `rm` (especially `rm -rf`)
+- `git reset --hard`
+- `git clean -fdx`
 - force push
-- `reset --hard`
-- `clean -fdx`
-- release/tag actions
+- branch deletion
 - merge actions
-- commands that install packages or download remote scripts
+- tag / release actions
+- Docker lifecycle start/stop/remove (unless the task explicitly requests lifecycle validation)
 
 If a task **explicitly** asks for template lifecycle validation, run:
 
@@ -109,22 +110,13 @@ See [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
 1. Read this `.cursorrules` file.
 2. Read [docs/CURSOR_WORKFLOW.md](docs/CURSOR_WORKFLOW.md).
 3. Read `LOCAL_SESSION_HANDOFF.md` if it exists.
-4. Read `README.md` and task-specific docs only as needed.
-5. Do **not** assume private-repo strategy is allowed here.
+4. Run `scripts/update-local-handoff.sh` after reading context (refreshes local handoff; never commits).
+5. Read `README.md` and task-specific docs only as needed.
+6. Do **not** assume private-repo strategy is allowed here.
 
 **Before stopping, switching branch/repo, or when context/progress approaches ~80–85%**
 
-Update `LOCAL_SESSION_HANDOFF.md` with:
-
-- repo
-- branch
-- latest commit
-- open PR
-- files changed
-- tests/checks run
-- Bugbot/CI status
-- unresolved risks
-- next safe step
+Run `scripts/update-local-handoff.sh` again, then edit the handoff notes (tests, Bugbot, risks, next step) if needed.
 
 `LOCAL_SESSION_HANDOFF.md` is **local-only**, **gitignored**, and must **never** be staged or committed.
 
