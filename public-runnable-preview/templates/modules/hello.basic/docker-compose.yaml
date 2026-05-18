@@ -4,6 +4,6 @@ services:
     container_name: ioe-hello-basic
     restart: unless-stopped
     ports:
-      - "18080:80"
+      - "127.0.0.1:18080:80"
     labels:
       ioe.module_id: "hello.basic"
