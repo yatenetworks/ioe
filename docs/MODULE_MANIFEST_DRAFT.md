@@ -109,6 +109,7 @@ http.echo.basic
 qdrant.basic
 ollama.basic
 open-webui.basic
+flowise.basic
 ```
 
 ### `template_version`

@@ -1,0 +1,20 @@
+services:
+  flowise-basic:
+    image: flowiseai/flowise:1.3.5
+    container_name: ioe-flowise-basic
+    restart: unless-stopped
+    command:
+      - flowise
+      - start
+    ports:
+      - "127.0.0.1:18086:3000"
+    environment:
+      PORT: "3000"
+      DATABASE_PATH: /root/.flowise
+      LOG_PATH: /root/.flowise/logs
+      SECRETKEY_PATH: /root/.flowise
+      BLOB_STORAGE_PATH: /root/.flowise/storage
+    volumes:
+      - ./data:/root/.flowise
+    labels:
+      ioe.module_id: "flowise.basic"

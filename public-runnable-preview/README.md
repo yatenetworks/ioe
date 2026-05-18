@@ -38,12 +38,13 @@ Lifecycle:
 
 ## Included templates
 
-- hello.basic (port 18080)
-- static.web.basic (port 18081)
-- http.echo.basic (port 18082)
+- hello.basic (port 18080, localhost)
+- static.web.basic (port 18081, localhost)
+- http.echo.basic (port 18082, localhost)
 - qdrant.basic (port 18083, draft / testing)
 - ollama.basic (port 18084, draft / testing)
 - open-webui.basic (port 18085, draft / testing)
+- flowise.basic (port 18086, draft / testing)
 
 ## Install entrypoints (testing only)
 
