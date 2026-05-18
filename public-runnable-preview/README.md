@@ -43,6 +43,7 @@ Lifecycle:
 - http.echo.basic (port 18082)
 - qdrant.basic (port 18083, draft / testing)
 - ollama.basic (port 18084, draft / testing)
+- open-webui.basic (port 18085, draft / testing)
 
 ## Install entrypoints (testing only)
 
